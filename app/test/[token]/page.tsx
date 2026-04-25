@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 
 const QUESTIONS = [
@@ -34,7 +34,7 @@ const QUESTIONS = [
   { id: 28, text: "내가 큰 잘못을 했을 때 ○○한테는 제일 먼저 말하고 싶지 않다", category: "보너스", reverse: true },
 ]
 
-const CHOICES = [
+const BASE_CHOICES = [
   { label: "매우 그렇다", value: 2 },
   { label: "그런 편이다", value: 1 },
   { label: "모르겠다", value: 0 },
@@ -48,9 +48,27 @@ export default function TestPage() {
   const [answers, setAnswers] = useState<Record<number, number>>({})
   const [submitting, setSubmitting] = useState(false)
   const [current, setCurrent] = useState(0)
+  const [shuffleSeeds, setShuffleSeeds] = useState<number[]>([])
+
+  // 첫 진입 시 28개 문항 각각의 셔플 시드 생성
+  useEffect(() => {
+    setShuffleSeeds(QUESTIONS.map(() => Math.random()))
+  }, [])
 
   const progress = Math.round(((current + 1) / QUESTIONS.length) * 100)
   const q = QUESTIONS[current]
+
+  // 현재 문항의 답변 순서 셔플 (시드 기반 - 같은 문항은 항상 같은 순서)
+  const shuffledChoices = (() => {
+    const seed = shuffleSeeds[current] ?? 0
+    const arr = [...BASE_CHOICES]
+    // 시드 기반 결정적 셔플
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor((seed * (i + 1) * 13) % (i + 1))
+      ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    }
+    return arr
+  })()
 
   const handleAnswer = (value: number) => {
     const newAnswers = { ...answers, [q.id]: value }
@@ -84,15 +102,12 @@ export default function TestPage() {
 
   return (
     <main style={{ minHeight: '100vh', background: '#F5E6D8', color: '#2C1810' }}>
-      {/* 진행 바 */}
       <div style={{ height: 5, background: '#E5D4C0' }}>
         <div style={{ height: '100%', width: `${progress}%`, background: '#C97D5A', transition: 'width 0.3s ease' }} />
       </div>
 
       <div style={{ paddingLeft: 16, paddingRight: 16 }}>
         <div style={{ maxWidth: 448, marginLeft: 'auto', marginRight: 'auto', boxSizing: 'border-box' }}>
-
-          {/* 상단 정보 */}
           <header style={{ paddingTop: 16, paddingBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{
@@ -101,84 +116,61 @@ export default function TestPage() {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'var(--font-display)', fontSize: 13,
               }}>F</div>
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: '#2C1810' }}>FPTI</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 14 }}>FPTI</span>
             </div>
             <div style={{
-              fontSize: 11,
-              padding: '6px 12px',
-              borderRadius: 999,
-              background: '#fff',
-              border: '1.5px solid #E5D4C0',
-              fontFamily: 'var(--font-mono)',
-              color: '#6B5544',
+              fontSize: 11, padding: '6px 12px', borderRadius: 999,
+              background: '#fff', border: '1.5px solid #E5D4C0',
+              fontFamily: 'var(--font-mono)', color: '#6B5544',
             }}>
               {current + 1} / {QUESTIONS.length}
             </div>
           </header>
 
-          {/* 카테고리 */}
           <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 16, paddingBottom: 12 }}>
             <span style={{
-              fontSize: 11,
-              padding: '6px 14px',
-              borderRadius: 999,
-              background: '#FFD96B',
-              color: '#2C1810',
-              fontFamily: 'var(--font-display)',
-              border: '1.5px solid #2C1810',
+              fontSize: 11, padding: '6px 14px', borderRadius: 999,
+              background: '#FFD96B', color: '#2C1810',
+              fontFamily: 'var(--font-display)', border: '1.5px solid #2C1810',
             }}>
               {q.category}
             </span>
           </div>
 
-          {/* 문항 카드 */}
           <div style={{
-            borderRadius: 20,
-            padding: 24,
-            marginBottom: 20,
-            background: '#fff',
-            border: '2px solid #2C1810',
+            borderRadius: 20, padding: 24, marginBottom: 20,
+            background: '#fff', border: '2px solid #2C1810',
             boxShadow: '0 5px 0 #C97D5A',
             minHeight: 160,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxSizing: 'border-box',
-            width: '100%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxSizing: 'border-box', width: '100%',
           }}>
             <h2 style={{
-              textAlign: 'center',
-              lineHeight: 1.4,
+              textAlign: 'center', lineHeight: 1.4,
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(18px, 5vw, 26px)',
-              color: '#2C1810',
+              fontSize: 'clamp(18px, 5vw, 26px)', color: '#2C1810',
             }}>
               {q.text}
             </h2>
           </div>
 
-          {/* 답변 선택지 */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 20 }}>
-            {CHOICES.map((choice) => {
+            {shuffledChoices.map((choice) => {
               const isSelected = answers[q.id] === choice.value
               return (
                 <button
                   key={choice.value}
                   onClick={() => handleAnswer(choice.value)}
                   style={{
-                    width: '100%',
-                    padding: '16px 20px',
-                    textAlign: 'center',
+                    width: '100%', padding: '16px 20px', textAlign: 'center',
                     borderRadius: 16,
                     background: isSelected ? '#2C1810' : '#fff',
                     color: isSelected ? '#fff' : '#2C1810',
                     border: `2px solid ${isSelected ? '#2C1810' : '#E5D4C0'}`,
                     boxShadow: isSelected ? '0 3px 0 #C97D5A' : '0 2px 0 #E5D4C0',
                     fontFamily: 'var(--font-display)',
-                    cursor: 'pointer',
-                    fontSize: 14,
-                    boxSizing: 'border-box',
-                    transition: 'all 0.15s',
+                    cursor: 'pointer', fontSize: 14,
+                    boxSizing: 'border-box', transition: 'all 0.15s',
                   }}
                 >
                   {choice.label}
@@ -187,45 +179,28 @@ export default function TestPage() {
             })}
           </div>
 
-          {/* 이전/제출 */}
           <div style={{ paddingBottom: 32, display: 'flex', gap: 10 }}>
             {current > 0 && (
-              <button
-                onClick={() => setCurrent(current - 1)}
-                style={{
-                  padding: '12px 18px',
-                  fontSize: 13,
-                  borderRadius: 12,
-                  background: '#fff',
-                  color: '#6B5544',
-                  border: '1.5px solid #E5D4C0',
-                  fontFamily: 'var(--font-display)',
-                  cursor: 'pointer',
-                  boxSizing: 'border-box',
-                }}
-              >
+              <button onClick={() => setCurrent(current - 1)} style={{
+                padding: '12px 18px', fontSize: 13, borderRadius: 12,
+                background: '#fff', color: '#6B5544',
+                border: '1.5px solid #E5D4C0',
+                fontFamily: 'var(--font-display)', cursor: 'pointer',
+              }}>
                 ← 이전
               </button>
             )}
 
             {isLast && allAnswered && (
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                style={{
-                  flex: 1,
-                  padding: '16px',
-                  fontSize: 15,
-                  borderRadius: 16,
-                  background: submitting ? '#9B8268' : '#2C1810',
-                  color: '#fff',
-                  border: 'none',
-                  fontFamily: 'var(--font-display)',
-                  cursor: submitting ? 'not-allowed' : 'pointer',
-                  boxShadow: submitting ? 'none' : '0 4px 0 #C97D5A',
-                  boxSizing: 'border-box',
-                }}
-              >
+              <button onClick={handleSubmit} disabled={submitting} style={{
+                flex: 1, padding: 16, fontSize: 15, borderRadius: 16,
+                background: submitting ? '#9B8268' : '#2C1810',
+                color: '#fff', border: 'none',
+                fontFamily: 'var(--font-display)',
+                cursor: submitting ? 'not-allowed' : 'pointer',
+                boxShadow: submitting ? 'none' : '0 4px 0 #C97D5A',
+                boxSizing: 'border-box',
+              }}>
                 {submitting ? '제출 중...' : '답변 제출하기 →'}
               </button>
             )}
