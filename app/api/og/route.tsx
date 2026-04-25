@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 import { createClient } from '@supabase/supabase-js'
 
-export const runtime = 'nodejs'
+export const runtime = 'edge'
 
 const REVERSE = [4, 9, 11, 12, 17, 22, 23, 24, 25, 26, 28]
 
@@ -36,119 +36,110 @@ function calc(answers: Record<number, number>[]) {
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const token = searchParams.get('token') || ''
-  const mode = searchParams.get('mode') || 'result'
+  try {
+    const { searchParams } = new URL(request.url)
+    const token = searchParams.get('token') || ''
+    const mode = searchParams.get('mode') || 'result'
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+    let nickname = ''
+    let typeName = ''
+    let score: number | null = null
+    let isPending = false
 
-  let nickname = ''
-  let typeName = ''
-  let score: number | null = null
-  let isPending = false
-
-  if (token) {
-    const { data: user } = await supabase
-      .from('users').select('id, nickname').eq('share_token', token).single()
-    if (user) {
-      nickname = user.nickname
-      const { data: responses } = await supabase
-        .from('responses').select('answers').eq('user_id', user.id)
-      if (responses && responses.length >= 3) {
-        const result = calc(responses.map(r => r.answers))
-        typeName = result.typeName
-        score = result.score
-      } else {
-        isPending = true
+    if (token) {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      const { data: user } = await supabase
+        .from('users').select('id, nickname').eq('share_token', token).single()
+      if (user) {
+        nickname = user.nickname
+        const { data: responses } = await supabase
+          .from('responses').select('answers').eq('user_id', user.id)
+        if (responses && responses.length >= 3) {
+          const result = calc(responses.map(r => r.answers))
+          typeName = result.typeName
+          score = result.score
+        } else {
+          isPending = true
+        }
       }
     }
-  }
 
-  const fontData = await fetch(
-    'https://fonts.gstatic.com/s/blackhansans/v17/ea8Aad44WunzF9a-dL6toA8r1JZJZL.woff'
-  ).then(r => r.arrayBuffer())
+    const showEvaluate = mode === 'test'
 
-  const showEvaluate = mode === 'test' || (mode !== 'result' && nickname)
-
-  return new ImageResponse(
-    (
-      <div style={{
-        width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
-        background: '#fff', padding: '70px',
-      }}>
+    return new ImageResponse(
+      (
         <div style={{
-          display: 'flex', justifyContent: 'space-between',
-          fontSize: 22, color: '#888', marginBottom: 50,
-          paddingBottom: 18, borderBottom: '3px solid #0a0a0a',
+          width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
+          background: '#FAFAFA', padding: '70px',
         }}>
-          <div style={{ fontWeight: 700, color: '#0a0a0a' }}>FPTI.KR</div>
-          <div>VOL.01 · 2026</div>
-        </div>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 16, marginBottom: 60,
+          }}>
+            <div style={{
+              width: 60, height: 60, background: '#FFEE00',
+              borderRadius: 16, display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              fontSize: 32, fontWeight: 900, color: '#0a0a0a',
+              boxShadow: '0 4px 0 #0a0a0a',
+            }}>F</div>
+            <div style={{ fontSize: 36, fontWeight: 900, color: '#0a0a0a' }}>FPTI</div>
+          </div>
 
-        {showEvaluate ? (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 38, color: '#444', marginBottom: 16, display: 'flex' }}>
-              {nickname || '친구'}의
-            </div>
-            <div style={{
-              fontSize: 130, fontFamily: 'BHS', lineHeight: 1.05,
-              color: '#0a0a0a', display: 'flex', flexWrap: 'wrap',
-            }}>
-              <span style={{ background: '#FFEE00', padding: '0 20px' }}>인성</span>
-              <span style={{ marginLeft: 20 }}>평가하기</span>
-            </div>
-            <div style={{ fontSize: 32, color: '#666', marginTop: 30, display: 'flex' }}>
-              28문항 · 2분 소요
-            </div>
-          </div>
-        ) : isPending ? (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 38, color: '#444', marginBottom: 16, display: 'flex' }}>
-              {nickname}님의
-            </div>
-            <div style={{
-              fontSize: 110, fontFamily: 'BHS', lineHeight: 1.05,
-              color: '#0a0a0a', display: 'flex',
-            }}>
-              <span style={{ background: '#FFEE00', padding: '0 20px' }}>결과 대기 중</span>
-            </div>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 38, color: '#444', marginBottom: 12, display: 'flex' }}>
-              {nickname}님은
-            </div>
-            <div style={{
-              fontSize: 130, fontFamily: 'BHS', lineHeight: 1.05,
-              color: '#0a0a0a', display: 'flex',
-            }}>
-              <span style={{ background: '#FFEE00', padding: '0 20px' }}>{typeName}</span>
-            </div>
-            {score !== null && (
-              <div style={{ fontSize: 56, color: '#0a0a0a', marginTop: 36, display: 'flex' }}>
-                점수 {score}/100
+          {showEvaluate ? (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ fontSize: 40, color: '#666', marginBottom: 20 }}>
+                {nickname || '친구'}의
               </div>
-            )}
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', fontSize: 110, fontWeight: 900, color: '#0a0a0a', lineHeight: 1.1 }}>
+                <span style={{ background: '#FFEE00', padding: '0 24px', borderRadius: 16 }}>인성</span>
+                <span style={{ marginLeft: 24 }}>평가하기</span>
+              </div>
+              <div style={{ fontSize: 32, color: '#666', marginTop: 36 }}>
+                28문항 · 2분 소요
+              </div>
+            </div>
+          ) : isPending ? (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ fontSize: 40, color: '#666', marginBottom: 20 }}>
+                {nickname}님의
+              </div>
+              <div style={{ fontSize: 100, fontWeight: 900, color: '#0a0a0a', lineHeight: 1.1, display: 'flex' }}>
+                <span style={{ background: '#FFEE00', padding: '0 24px', borderRadius: 16 }}>결과 대기 중</span>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ fontSize: 40, color: '#666', marginBottom: 16 }}>
+                {nickname}님은
+              </div>
+              <div style={{ fontSize: 110, fontWeight: 900, color: '#0a0a0a', lineHeight: 1.1, display: 'flex' }}>
+                <span style={{ background: '#FFEE00', padding: '0 24px', borderRadius: 16 }}>{typeName}</span>
+              </div>
+              {score !== null && (
+                <div style={{ fontSize: 56, color: '#0a0a0a', marginTop: 36 }}>
+                  점수 {score}/100
+                </div>
+              )}
+            </div>
+          )}
+
+          <div style={{ flex: 1 }} />
+
+          <div style={{
+            display: 'flex', justifyContent: 'space-between',
+            fontSize: 28, color: '#888',
+          }}>
+            <span>친구가 답하는 인성 테스트</span>
+            <span style={{ fontWeight: 900, color: '#0a0a0a' }}>fpti.kr</span>
           </div>
-        )}
-
-        <div style={{ flex: 1 }} />
-
-        <div style={{
-          display: 'flex', justifyContent: 'space-between',
-          fontSize: 24, color: '#888',
-        }}>
-          <span>친구가 답하는 인성 테스트</span>
-          <span style={{ fontWeight: 700, color: '#0a0a0a' }}>fpti.kr</span>
         </div>
-      </div>
-    ),
-    {
-      width: 1200, height: 630,
-      fonts: [{ name: 'BHS', data: fontData, style: 'normal' }],
-    }
-  )
+      ),
+      { width: 1200, height: 630 }
+    )
+  } catch (e) {
+    return new Response(`OG Error: ${(e as Error).message}`, { status: 500 })
+  }
 }
