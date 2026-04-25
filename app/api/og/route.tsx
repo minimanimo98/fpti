@@ -36,7 +36,6 @@ function calc(answers: Record<number, number>[]) {
   return { score, typeName, expression }
 }
 
-// 큰 사이즈 마스코트 SVG (OG용 360px)
 function mascotDataUrl(expression: string): string {
   const eyes = expression === 'peek'
     ? '<path d="M 45 60 Q 53 56 61 60" stroke="#2C1810" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="92" cy="60" r="6" fill="#2C1810"/><circle cx="94" cy="58" r="2" fill="#fff"/><path d="M 60 85 Q 70 92 82 85" stroke="#2C1810" stroke-width="3.5" fill="none" stroke-linecap="round"/>'
@@ -48,7 +47,7 @@ function mascotDataUrl(expression: string): string {
     ? '<path d="M 45 60 L 60 60" stroke="#2C1810" stroke-width="3.5" stroke-linecap="round"/><path d="M 80 60 L 95 60" stroke="#2C1810" stroke-width="3.5" stroke-linecap="round"/><path d="M 58 88 Q 75 82 85 90" stroke="#2C1810" stroke-width="3.5" fill="none" stroke-linecap="round"/>'
     : '<path d="M 45 62 Q 53 66 61 62" stroke="#2C1810" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M 82 62 Q 90 66 98 62" stroke="#2C1810" stroke-width="3.5" fill="none" stroke-linecap="round"/><ellipse cx="70" cy="88" rx="6" ry="3" fill="#2C1810"/>'
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" width="360" height="360"><circle cx="70" cy="65" r="55" fill="#FFD96B" stroke="#2C1810" stroke-width="3.5"/><circle cx="42" cy="78" r="4" fill="#E89B7A" opacity="0.7"/><circle cx="98" cy="78" r="4" fill="#E89B7A" opacity="0.7"/>${eyes}</svg>`
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140"><circle cx="70" cy="65" r="55" fill="#FFD96B" stroke="#2C1810" stroke-width="3.5"/><circle cx="42" cy="78" r="4" fill="#E89B7A" opacity="0.7"/><circle cx="98" cy="78" r="4" fill="#E89B7A" opacity="0.7"/>${eyes}</svg>`
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
 }
 
@@ -75,7 +74,7 @@ export async function GET(request: Request) {
         nickname = user.nickname
         const { data: responses } = await supabase
           .from('responses').select('answers').eq('user_id', user.id)
-        if (responses && responses.length >= 1) {
+        if (responses && responses.length >= 2) {
           const result = calc(responses.map(r => r.answers))
           typeName = result.typeName
           score = result.score
@@ -87,217 +86,163 @@ export async function GET(request: Request) {
     }
 
     const showEvaluate = mode === 'test'
-    
-    // 모드별 표정
     let displayExpression = expression
-    if (showEvaluate) displayExpression = 'peek'  // 테스트 페이지: 흘끔
-    if (isPending) displayExpression = 'sleepy'   // 대기중: 졸림
+    if (showEvaluate) displayExpression = 'peek'
+    if (isPending) displayExpression = 'sleepy'
 
     const mascotUrl = mascotDataUrl(displayExpression)
 
     return new ImageResponse(
       (
         <div style={{
-          width: '100%', height: '100%',
+          width: '100%',
+          height: '100%',
           display: 'flex',
+          flexDirection: 'column',
           background: '#F5E6D8',
-          position: 'relative',
+          padding: '60px 70px',
         }}>
-          {/* 배경 장식 - 큰 노란 원 */}
-          <div style={{
-            display: 'flex',
-            position: 'absolute',
-            top: -100, right: -100,
-            width: 400, height: 400,
-            background: '#FFD96B',
-            borderRadius: '50%',
-            opacity: 0.3,
-          }} />
-          
-          {/* 배경 장식 - 산호 점들 */}
-          <div style={{
-            display: 'flex',
-            position: 'absolute',
-            bottom: 60, left: 80,
-            width: 12, height: 12,
-            background: '#C97D5A',
-            borderRadius: '50%',
-          }} />
-          <div style={{
-            display: 'flex',
-            position: 'absolute',
-            top: 80, left: 60,
-            width: 8, height: 8,
-            background: '#C97D5A',
-            borderRadius: '50%',
-            opacity: 0.5,
-          }} />
+          {/* 로고 */}
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 30 }}>
+            <div style={{
+              display: 'flex',
+              width: 60,
+              height: 60,
+              background: '#2C1810',
+              borderRadius: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 32,
+              fontWeight: 900,
+              color: '#fff',
+              marginRight: 14,
+            }}>
+              F
+            </div>
+            <div style={{
+              display: 'flex',
+              fontSize: 32,
+              fontWeight: 900,
+              color: '#2C1810',
+            }}>
+              FPTI
+            </div>
+          </div>
 
-          {/* 메인 컨텐츠 */}
+          {/* 본문 */}
           <div style={{
             display: 'flex',
-            flexDirection: 'column',
-            width: '100%',
-            padding: '50px 60px',
-            position: 'relative',
-            zIndex: 1,
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}>
-            {/* 상단 로고 */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-              <div style={{
-                display: 'flex',
-                width: 60, height: 60,
-                background: '#2C1810',
-                borderRadius: 16,
-                alignItems: 'center', justifyContent: 'center',
-                fontSize: 32, fontWeight: 900, color: '#fff',
-              }}>F</div>
-              <div style={{
-                display: 'flex',
-                fontSize: 32, fontWeight: 900,
-                color: '#2C1810',
-                letterSpacing: 2,
-              }}>FPTI</div>
-            </div>
-
-            {/* 본문 영역 */}
+            {/* 좌측 텍스트 */}
             <div style={{
               display: 'flex',
+              flexDirection: 'column',
               flex: 1,
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 30,
             }}>
-              {/* 좌측 텍스트 */}
-              <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center' }}>
-                {showEvaluate ? (
-                  <>
-                    <div style={{ display: 'flex', fontSize: 30, color: '#6B5544', marginBottom: 12 }}>
-                      {nickname || '친구'}의 인성을
-                    </div>
+              {showEvaluate ? (
+                <>
+                  <div style={{ display: 'flex', fontSize: 36, color: '#6B5544', marginBottom: 16 }}>
+                    {nickname || '친구'}의 인성을
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    fontSize: 76,
+                    fontWeight: 900,
+                    color: '#2C1810',
+                    background: '#FFD96B',
+                    padding: '8px 24px',
+                    borderRadius: 16,
+                    border: '4px solid #2C1810',
+                  }}>
+                    평가해주세요
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    fontSize: 26,
+                    color: '#6B5544',
+                    marginTop: 28,
+                  }}>
+                    28문항 · 2분 소요
+                  </div>
+                </>
+              ) : isPending ? (
+                <>
+                  <div style={{ display: 'flex', fontSize: 36, color: '#6B5544', marginBottom: 16 }}>
+                    {nickname}님의
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    fontSize: 76,
+                    fontWeight: 900,
+                    color: '#2C1810',
+                    background: '#FFD96B',
+                    padding: '8px 24px',
+                    borderRadius: 16,
+                    border: '4px solid #2C1810',
+                  }}>
+                    결과 대기중
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', fontSize: 32, color: '#6B5544', marginBottom: 16 }}>
+                    {nickname}님은
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    fontSize: 64,
+                    fontWeight: 900,
+                    color: '#2C1810',
+                    background: '#FFD96B',
+                    padding: '8px 24px',
+                    borderRadius: 16,
+                    border: '4px solid #2C1810',
+                  }}>
+                    {typeName}
+                  </div>
+                  {score !== null && (
                     <div style={{
                       display: 'flex',
-                      fontSize: 76, fontWeight: 900, color: '#2C1810',
-                      lineHeight: 1.1,
+                      fontSize: 56,
+                      fontWeight: 900,
+                      color: '#2C1810',
+                      marginTop: 28,
                     }}>
-                      <div style={{
-                        display: 'flex',
-                        background: '#FFD96B',
-                        padding: '4px 20px',
-                        borderRadius: 16,
-                        border: '4px solid #2C1810',
-                        boxShadow: '0 6px 0 #C97D5A',
-                      }}>
-                        평가해주세요
-                      </div>
+                      {score} / 100
                     </div>
-                    <div style={{
-                      display: 'flex',
-                      fontSize: 24, color: '#6B5544', marginTop: 28,
-                      gap: 12,
-                    }}>
-                      <div style={{ display: 'flex' }}>📝 28문항</div>
-                      <div style={{ display: 'flex' }}>·</div>
-                      <div style={{ display: 'flex' }}>⏱️ 2분</div>
-                    </div>
-                  </>
-                ) : isPending ? (
-                  <>
-                    <div style={{ display: 'flex', fontSize: 30, color: '#6B5544', marginBottom: 12 }}>
-                      {nickname}님의
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      fontSize: 76, fontWeight: 900, color: '#2C1810',
-                      lineHeight: 1.1,
-                    }}>
-                      <div style={{
-                        display: 'flex',
-                        background: '#FFD96B',
-                        padding: '4px 20px',
-                        borderRadius: 16,
-                        border: '4px solid #2C1810',
-                        boxShadow: '0 6px 0 #C97D5A',
-                      }}>
-                        결과 대기중
-                      </div>
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      fontSize: 22, color: '#6B5544', marginTop: 24,
-                    }}>
-                      친구가 답하면 결과가 공개돼요
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div style={{ display: 'flex', fontSize: 28, color: '#6B5544', marginBottom: 12 }}>
-                      {nickname}님의 결과는
-                    </div>
-                    <div style={{
-                      display: 'flex',
-                      fontSize: 64, fontWeight: 900, color: '#2C1810',
-                      lineHeight: 1.1,
-                    }}>
-                      <div style={{
-                        display: 'flex',
-                        background: '#FFD96B',
-                        padding: '4px 20px',
-                        borderRadius: 16,
-                        border: '4px solid #2C1810',
-                        boxShadow: '0 6px 0 #C97D5A',
-                      }}>
-                        {typeName}
-                      </div>
-                    </div>
-                    {score !== null && (
-                      <div style={{
-                        display: 'flex',
-                        fontSize: 44, color: '#2C1810', marginTop: 28,
-                        fontWeight: 900,
-                      }}>
-                        {score}<span style={{ display: 'flex', fontSize: 28, color: '#9B8268', marginLeft: 6 }}>/ 100</span>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-
-              {/* 우측 마스코트 */}
-              <div style={{
-                display: 'flex',
-                position: 'relative',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                {/* 햇살 배경 */}
-                <div style={{
-                  display: 'flex',
-                  position: 'absolute',
-                  width: 320, height: 320,
-                  background: '#FFD96B',
-                  borderRadius: '50%',
-                  opacity: 0.4,
-                }} />
-                <img src={mascotUrl} width="360" height="360" alt="" style={{ position: 'relative' }} />
-              </div>
+                  )}
+                </>
+              )}
             </div>
 
-            {/* 하단 */}
+            {/* 우측 마스코트 */}
             <div style={{
               display: 'flex',
-              justifyContent: 'space-between',
+              width: 360,
+              height: 360,
               alignItems: 'center',
-              marginTop: 20,
-              paddingTop: 20,
-              borderTop: '2px dashed #C97D5A',
+              justifyContent: 'center',
             }}>
-              <div style={{ display: 'flex', fontSize: 22, color: '#9B8268' }}>
-                친구가 답하는 인성 테스트
-              </div>
-              <div style={{ display: 'flex', fontSize: 24, fontWeight: 900, color: '#2C1810' }}>
-                fpti.kr
-              </div>
+              <img src={mascotUrl} width={360} height={360} alt="" />
+            </div>
+          </div>
+
+          {/* 하단 */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginTop: 30,
+            paddingTop: 20,
+            borderTop: '2px dashed #C97D5A',
+          }}>
+            <div style={{ display: 'flex', fontSize: 24, color: '#9B8268' }}>
+              친구가 답하는 인성 테스트
+            </div>
+            <div style={{ display: 'flex', fontSize: 26, fontWeight: 900, color: '#2C1810' }}>
+              fpti.kr
             </div>
           </div>
         </div>
