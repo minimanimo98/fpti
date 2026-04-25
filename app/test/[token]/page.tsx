@@ -66,13 +66,11 @@ export default function TestPage() {
       return
     }
     setSubmitting(true)
-
     const res = await fetch('/api/responses', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ token, answers }),
     })
-
     if (res.ok) {
       router.push(`/test/${token}/done`)
     } else {
@@ -85,144 +83,153 @@ export default function TestPage() {
   const allAnswered = Object.keys(answers).length === QUESTIONS.length
 
   return (
-    <main className="min-h-screen" style={{ background: '#FFE4D9', color: '#3D2817' }}>
-      {/* 상단 진행 바 */}
-      <div style={{ height: 6, background: '#FFCFBA' }}>
-        <div
-          style={{
-            height: '100%',
-            width: `${progress}%`,
-            background: '#FFEE00',
-            transition: 'width 0.3s ease',
-          }}
-        />
+    <main style={{ minHeight: '100vh', background: '#F5E6D8', color: '#2C1810' }}>
+      {/* 진행 바 */}
+      <div style={{ height: 5, background: '#E5D4C0' }}>
+        <div style={{ height: '100%', width: `${progress}%`, background: '#C97D5A', transition: 'width 0.3s ease' }} />
       </div>
 
-      <div className="max-w-[480px] mx-auto px-6">
-        {/* 상단 정보 */}
-        <header className="py-5 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ background: '#FFEE00', boxShadow: '0 2px 0 #3D2817' }}
-            >
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: '#3D2817' }}>F</span>
+      <div style={{ paddingLeft: 16, paddingRight: 16 }}>
+        <div style={{ maxWidth: 448, marginLeft: 'auto', marginRight: 'auto', boxSizing: 'border-box' }}>
+
+          {/* 상단 정보 */}
+          <header style={{ paddingTop: 16, paddingBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: 7,
+                background: '#2C1810', color: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'var(--font-display)', fontSize: 13,
+              }}>F</div>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: '#2C1810' }}>FPTI</span>
             </div>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>FPTI</span>
-          </div>
-          <div
-            className="text-xs px-3 py-1.5 rounded-full"
-            style={{
+            <div style={{
+              fontSize: 11,
+              padding: '6px 12px',
+              borderRadius: 999,
               background: '#fff',
-              border: '1.5px solid #FFCFBA',
+              border: '1.5px solid #E5D4C0',
               fontFamily: 'var(--font-mono)',
-              color: '#7A5A47',
-            }}
-          >
-            {current + 1} / {QUESTIONS.length}
-          </div>
-        </header>
+              color: '#6B5544',
+            }}>
+              {current + 1} / {QUESTIONS.length}
+            </div>
+          </header>
 
-        {/* 카테고리 라벨 */}
-        <div className="flex justify-center pt-4 pb-3">
-          <span
-            className="text-xs px-3 py-1.5 rounded-full"
-            style={{
-              background: '#FFEE00',
-              color: '#3D2817',
+          {/* 카테고리 */}
+          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 16, paddingBottom: 12 }}>
+            <span style={{
+              fontSize: 11,
+              padding: '6px 14px',
+              borderRadius: 999,
+              background: '#FFD96B',
+              color: '#2C1810',
               fontFamily: 'var(--font-display)',
-              border: '1.5px solid #3D2817',
-            }}
-          >
-            {q.category}
-          </span>
-        </div>
+              border: '1.5px solid #2C1810',
+            }}>
+              {q.category}
+            </span>
+          </div>
 
-        {/* 문항 카드 */}
-        <div
-          className="rounded-2xl p-6 mb-6"
-          style={{
+          {/* 문항 카드 */}
+          <div style={{
+            borderRadius: 20,
+            padding: 24,
+            marginBottom: 20,
             background: '#fff',
-            border: '2.5px solid #3D2817',
-            boxShadow: '0 5px 0 #FF8A65',
+            border: '2px solid #2C1810',
+            boxShadow: '0 5px 0 #C97D5A',
             minHeight: 160,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-          }}
-        >
-          <h2
-            className="text-center leading-snug"
-            style={{
+            boxSizing: 'border-box',
+            width: '100%',
+          }}>
+            <h2 style={{
+              textAlign: 'center',
+              lineHeight: 1.4,
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(20px, 5.5vw, 28px)',
-              color: '#3D2817',
-            }}
-          >
-            {q.text}
-          </h2>
-        </div>
+              fontSize: 'clamp(18px, 5vw, 26px)',
+              color: '#2C1810',
+            }}>
+              {q.text}
+            </h2>
+          </div>
 
-        {/* 답변 선택지 */}
-        <div className="flex flex-col gap-2.5 pb-6">
-          {CHOICES.map((choice) => {
-            const isSelected = answers[q.id] === choice.value
-            return (
+          {/* 답변 선택지 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 20 }}>
+            {CHOICES.map((choice) => {
+              const isSelected = answers[q.id] === choice.value
+              return (
+                <button
+                  key={choice.value}
+                  onClick={() => handleAnswer(choice.value)}
+                  style={{
+                    width: '100%',
+                    padding: '16px 20px',
+                    textAlign: 'center',
+                    borderRadius: 16,
+                    background: isSelected ? '#2C1810' : '#fff',
+                    color: isSelected ? '#fff' : '#2C1810',
+                    border: `2px solid ${isSelected ? '#2C1810' : '#E5D4C0'}`,
+                    boxShadow: isSelected ? '0 3px 0 #C97D5A' : '0 2px 0 #E5D4C0',
+                    fontFamily: 'var(--font-display)',
+                    cursor: 'pointer',
+                    fontSize: 14,
+                    boxSizing: 'border-box',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {choice.label}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* 이전/제출 */}
+          <div style={{ paddingBottom: 32, display: 'flex', gap: 10 }}>
+            {current > 0 && (
               <button
-                key={choice.value}
-                onClick={() => handleAnswer(choice.value)}
-                className="w-full py-4 px-5 text-center text-base transition-all rounded-2xl"
+                onClick={() => setCurrent(current - 1)}
                 style={{
-                  background: isSelected ? '#3D2817' : '#fff',
-                  color: isSelected ? '#fff' : '#3D2817',
-                  border: `2px solid ${isSelected ? '#3D2817' : '#FFCFBA'}`,
-                  boxShadow: isSelected ? '0 3px 0 #FF8A65' : '0 2px 0 #FFCFBA',
+                  padding: '12px 18px',
+                  fontSize: 13,
+                  borderRadius: 12,
+                  background: '#fff',
+                  color: '#6B5544',
+                  border: '1.5px solid #E5D4C0',
                   fontFamily: 'var(--font-display)',
                   cursor: 'pointer',
-                  fontSize: 15,
+                  boxSizing: 'border-box',
                 }}
               >
-                {choice.label}
+                ← 이전
               </button>
-            )
-          })}
-        </div>
+            )}
 
-        {/* 이전/다음 */}
-        <div className="pb-12 flex gap-3">
-          {current > 0 && (
-            <button
-              onClick={() => setCurrent(current - 1)}
-              className="py-3 px-5 text-sm rounded-xl"
-              style={{
-                background: '#fff',
-                color: '#7A5A47',
-                border: '1.5px solid #FFCFBA',
-                fontFamily: 'var(--font-display)',
-                cursor: 'pointer',
-              }}
-            >
-              ← 이전
-            </button>
-          )}
-
-          {isLast && allAnswered && (
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="flex-1 py-4 text-base rounded-2xl"
-              style={{
-                background: submitting ? '#A8826A' : '#3D2817',
-                color: '#fff',
-                border: 'none',
-                fontFamily: 'var(--font-display)',
-                cursor: submitting ? 'not-allowed' : 'pointer',
-                boxShadow: submitting ? 'none' : '0 4px 0 #FF8A65',
-              }}
-            >
-              {submitting ? '제출 중...' : '답변 제출하기 →'}
-            </button>
-          )}
+            {isLast && allAnswered && (
+              <button
+                onClick={handleSubmit}
+                disabled={submitting}
+                style={{
+                  flex: 1,
+                  padding: '16px',
+                  fontSize: 15,
+                  borderRadius: 16,
+                  background: submitting ? '#9B8268' : '#2C1810',
+                  color: '#fff',
+                  border: 'none',
+                  fontFamily: 'var(--font-display)',
+                  cursor: submitting ? 'not-allowed' : 'pointer',
+                  boxShadow: submitting ? 'none' : '0 4px 0 #C97D5A',
+                  boxSizing: 'border-box',
+                }}
+              >
+                {submitting ? '제출 중...' : '답변 제출하기 →'}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </main>
