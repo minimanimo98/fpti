@@ -1,18 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function Home() {
   const [nickname, setNickname] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [stats, setStats] = useState({ users: 0, responses: 0 })
   const router = useRouter()
 
   const INK = "#0a0a0a"
   const PAPER = "#ffffff"
   const HIGHLIGHT = "#FFEE00"
   const GRAY = "#888888"
+
+  useEffect(() => {
+    fetch('/api/stats').then(r => r.json()).then(setStats).catch(() => {})
+  }, [])
 
   const handleStart = async () => {
     if (!nickname.trim()) {
@@ -41,7 +46,6 @@ export default function Home() {
 
   return (
     <main>
-      {/* 상단 바 */}
       <div
         className="flex justify-between px-6 py-5 text-[11px] uppercase tracking-wider"
         style={{ fontFamily: "var(--font-mono)", borderBottom: `2px solid ${INK}` }}
@@ -50,7 +54,6 @@ export default function Home() {
         <div style={{ color: GRAY }}>VOL.01 · 2026</div>
       </div>
 
-      {/* 히어로 */}
       <section className="px-6 pt-10 pb-16">
         <div
           className="text-xs mb-8 pl-2.5 leading-snug"
@@ -82,7 +85,6 @@ export default function Home() {
           친구 3명의 답으로 당신의 진짜 인성이 드러납니다.
         </p>
 
-        {/* 닉네임 입력 */}
         <div className="mb-3 max-w-[400px]">
           <input
             type="text"
@@ -128,7 +130,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 큰 FPTI 마크 */}
       <div
         className="leading-[0.85] tracking-[-0.04em] py-6 overflow-hidden text-center"
         style={{
@@ -142,7 +143,36 @@ export default function Home() {
         FPTI
       </div>
 
-      {/* 통계 */}
+      {/* 실시간 통계 */}
+      <section className="px-6 py-9" style={{ borderBottom: `2px solid ${INK}` }}>
+        <div
+          className="text-[11px] uppercase tracking-wider mb-6"
+          style={{ color: GRAY, fontFamily: "var(--font-mono)" }}
+        >
+          — Live Stats
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <div
+              className="leading-none mb-1.5"
+              style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 9vw, 56px)" }}
+            >
+              {stats.users.toLocaleString()}
+            </div>
+            <div className="text-xs" style={{ color: GRAY }}>명이 평가받았어요</div>
+          </div>
+          <div>
+            <div
+              className="leading-none mb-1.5"
+              style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 9vw, 56px)" }}
+            >
+              {stats.responses.toLocaleString()}
+            </div>
+            <div className="text-xs" style={{ color: GRAY }}>건의 솔직한 답변</div>
+          </div>
+        </div>
+      </section>
+
       <section className="px-6 py-9" style={{ borderBottom: `2px solid ${INK}` }}>
         <div
           className="text-[11px] uppercase tracking-wider mb-6"
@@ -169,7 +199,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 푸터 */}
       <section className="px-6" style={{ background: INK, color: PAPER, paddingTop: "60px", paddingBottom: "28px" }}>
         <h2
           className="leading-tight mb-7"
