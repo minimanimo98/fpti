@@ -41,20 +41,40 @@ export default function Home() {
       <header className="px-6 py-5 max-w-[480px] mx-auto flex justify-center">
         <div className="flex items-center gap-2.5">
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            className="w-9 h-9 rounded-xl flex items-center justify-center"
             style={{ background: '#FFEE00', boxShadow: '0 3px 0 #0a0a0a' }}
           >
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>F</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 18 }}>F</span>
           </div>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 22 }}>FPTI</span>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>FPTI</span>
         </div>
       </header>
 
-      {/* Hero - 한 화면 안에 다 들어옴 */}
-      <section className="px-6 pt-8 pb-12 max-w-[480px] mx-auto text-center">
+      {/* 마스코트 캐릭터 PEEK */}
+      <div className="flex justify-center pt-6 pb-2">
+        <svg width="140" height="140" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+          {/* 그림자 */}
+          <ellipse cx="72" cy="128" rx="50" ry="6" fill="rgba(0,0,0,0.08)" />
+          {/* 얼굴 */}
+          <circle cx="70" cy="65" r="55" fill="#FFEE00" stroke="#0a0a0a" strokeWidth="3.5" />
+          {/* 왼쪽 눈 (감김) */}
+          <path d="M 45 60 Q 53 56 61 60" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+          {/* 오른쪽 눈 (뜸 - 옆을 봄) */}
+          <circle cx="92" cy="60" r="6" fill="#0a0a0a" />
+          <circle cx="94" cy="58" r="2" fill="#fff" />
+          {/* 입 (살짝 비웃는 듯) */}
+          <path d="M 60 85 Q 70 92 82 85" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+          {/* 볼 터치 */}
+          <circle cx="42" cy="78" r="4" fill="#FF9999" opacity="0.5" />
+          <circle cx="98" cy="78" r="4" fill="#FF9999" opacity="0.5" />
+        </svg>
+      </div>
+
+      {/* Hero */}
+      <section className="px-6 pt-2 pb-12 max-w-[480px] mx-auto text-center">
         <h1
           className="leading-[1.1] mb-5 tracking-tight"
-          style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(38px, 10vw, 56px)' }}
+          style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(36px, 9.5vw, 52px)' }}
         >
           내 인성,<br />
           <span
@@ -114,38 +134,14 @@ export default function Home() {
         )}
       </section>
 
-      {/* 스크롤 유도 화살표 */}
-      <div className="text-center pb-6" style={{ color: '#bbb', fontSize: 20 }}>↓</div>
-
-      {/* What is FPTI - 짧게 */}
-      <section className="px-6 pb-10 max-w-[480px] mx-auto text-center">
+      {/* 짧은 설명 */}
+      <section className="px-6 pb-16 max-w-[480px] mx-auto text-center">
         <p className="text-sm leading-relaxed" style={{ color: '#666' }}>
           MBTI는 <strong style={{ color: '#0a0a0a' }}>내가 보는 나</strong>.<br />
           FPTI는 <strong style={{ color: '#0a0a0a' }}>친구가 보는 나</strong>.<br /><br />
           본인이 답하는 테스트는 그만.<br />
           이번엔 다른 사람의 눈으로 보는 차례.
         </p>
-      </section>
-
-      {/* How - 간결하게 */}
-      <section className="px-6 pb-12 max-w-[480px] mx-auto">
-        <div className="flex justify-around text-center">
-          {[
-            { num: '1', title: '링크 만들기' },
-            { num: '2', title: '친구에게 보내기' },
-            { num: '3', title: '결과 확인' },
-          ].map((step, i) => (
-            <div key={i} className="flex-1">
-              <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2"
-                style={{ background: '#FFEE00', fontFamily: 'var(--font-display)', fontSize: 20 }}
-              >
-                {step.num}
-              </div>
-              <div className="text-xs" style={{ color: '#666' }}>{step.title}</div>
-            </div>
-          ))}
-        </div>
       </section>
 
       {/* Footer */}
