@@ -6,18 +6,18 @@ export const runtime = 'edge'
 const REVERSE = [4, 9, 11, 12, 17, 22, 23, 24, 25, 26, 28]
 
 const TYPE_INFO: Record<string, { desc: string; tags: string[]; expression: string }> = {
-  '성인군자':       { desc: '친구들이 진심으로 좋은 사람이라고 생각합니다.', tags: ['성인급', '무결점', '멸종위기'], expression: 'smile' },
-  '걸어다니는 힐링': { desc: '같이 있으면 마음이 놓입니다.', tags: ['정신적안정제', '말없는위로', '소진주의'], expression: 'smile' },
-  '다정한 호구':     { desc: '기본적으로 착합니다. 부탁을 잘 못 거절합니다.', tags: ['No못함', '친절무한리필', '호구졸업반'], expression: 'sleepy' },
-  '상식선 인간':     { desc: '요즘 상식선 지키는 사람이 드물어요.', tags: ['정상인', '기본기만렙', '평균수호자'], expression: 'peek' },
-  '무난무취형':      { desc: '나쁘지 않습니다. 좋지도 않습니다.', tags: ['존재감논란', '특색없음', '무색무취'], expression: 'sleepy' },
-  '은근한 빌런':     { desc: '표면적으론 문제없는 사람.', tags: ['겉속다름', '계산적', '속내따로'], expression: 'smirk' },
-  '뒷담화 챔피언':   { desc: '남 얘기를 너무 재밌게 합니다.', tags: ['입방정', '가십연구원', '뒤에선검사'], expression: 'smirk' },
-  '기분파 폭군':     { desc: '기분 좋을 땐 당신만한 친구가 없습니다.', tags: ['기분존중', '감정날씨', '눈치제공자'], expression: 'shock' },
-  '감정 흡혈귀':     { desc: '대화는 늘 당신 문제로 끝나요.', tags: ['영혼고갈', '배터리방전', '일방통행'], expression: 'shock' },
-  '허당 귀요미':     { desc: '점수가 낮은데 왠지 용서됩니다.', tags: ['귀여움무기', '허당력만렙', '유효기간있음'], expression: 'smile' },
-  '관종 빌런':       { desc: '관심을 위해서라면 뭐든 합니다.', tags: ['관심없으면불안', '모임의태양', '조연싫음'], expression: 'shock' },
-  '순수악':         { desc: '관계를 다시 생각해볼 신호.', tags: ['극희귀', '관계점검', '적신호'], expression: 'smirk' },
+  '성인군자':       { desc: '친구들이 진심으로 좋은 사람이라고 생각합니다. 다만 너무 무결하다는 게 함정. 완벽함은 거리감을 만듭니다.', tags: ['성인급', '무결점', '멸종위기'], expression: 'smile' },
+  '걸어다니는 힐링': { desc: '같이 있으면 마음이 놓입니다. 다만 그 다정함이 당신을 소진시킬 수 있어요.', tags: ['정신적안정제', '말없는위로', '소진주의'], expression: 'smile' },
+  '다정한 호구':     { desc: '기본적으로 착합니다. 부탁을 잘 못 거절합니다. 친구들이 그걸 알고 있어요. 일부는 이용 중일지도.', tags: ['No못함', '친절무한리필', '호구졸업반'], expression: 'sleepy' },
+  '상식선 인간':     { desc: '놀랍게도 이 점수가 제일 받기 힘듭니다. 요즘 상식선 지키는 사람이 드물어졌어요. 평균의 수호자.', tags: ['정상인', '기본기만렙', '평균수호자'], expression: 'peek' },
+  '무난무취형':      { desc: '나쁘지 않습니다. 좋지도 않습니다. 해를 끼치지 않지만 기억에도 남지 않아요. 관계에서 의외로 치명적.', tags: ['존재감논란', '특색없음', '무색무취'], expression: 'sleepy' },
+  '은근한 빌런':     { desc: '표면적으론 문제없는 사람. 그런데 친구들이 미세한 불편함을 느꼈어요. 뭔가 계산적이라는 감각.', tags: ['겉속다름', '계산적', '속내따로'], expression: 'smirk' },
+  '뒷담화 챔피언':   { desc: '친구들은 당신 앞에서 웃습니다. 뒤돌아서면 조금 긴장합니다. 남 얘기를 너무 재밌게 합니다.', tags: ['입방정', '가십연구원', '뒤에선검사'], expression: 'smirk' },
+  '기분파 폭군':     { desc: '기분 좋을 땐 당신만한 친구가 없습니다. 문제는 기분이 나쁠 때. 친구들은 표정을 살피며 하루를 시작해요.', tags: ['기분존중', '감정날씨', '눈치제공자'], expression: 'shock' },
+  '감정 흡혈귀':     { desc: '당신과 얘기하면 친구들은 피곤해합니다. 대화는 늘 당신 문제로 끝나요. 친구는 치료사가 아니에요.', tags: ['영혼고갈', '배터리방전', '일방통행'], expression: 'shock' },
+  '허당 귀요미':     { desc: '점수가 낮은데 왠지 용서됩니다. 왜냐하면 귀엽기 때문이에요. 다만 허당력은 나이와 반비례합니다.', tags: ['귀여움무기', '허당력만렙', '유효기간있음'], expression: 'smile' },
+  '관종 빌런':       { desc: '관심을 위해서라면 뭐든 합니다. 재밌는 사람이라는 평가와 피곤한 사람이라는 평가가 공존해요.', tags: ['관심없으면불안', '모임의태양', '조연싫음'], expression: 'shock' },
+  '순수악':         { desc: '친구들은 당신에 대해 일관되게 부정적인 평가를 내렸습니다. 관계를 다시 생각해볼 신호.', tags: ['극희귀', '관계점검', '적신호'], expression: 'smirk' },
 }
 
 function calc(answers: Record<number, number>[]) {
@@ -138,7 +138,7 @@ export async function GET(request: Request) {
 
             <div style={{
               display: 'flex',
-              fontSize: 28,
+              fontSize: 24,
               color: '#9B8268',
               marginBottom: 8,
             }}>
@@ -200,10 +200,10 @@ export async function GET(request: Request) {
 
             <div style={{
               display: 'flex',
-              fontSize: 28,
+              fontSize: 24,
               color: '#5A4030',
               textAlign: 'center',
-              padding: '0 40px',
+              padding: '0 50px', lineHeight: 1.5,
             }}>
               {typeInfo.desc}
             </div>
