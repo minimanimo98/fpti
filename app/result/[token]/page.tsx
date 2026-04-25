@@ -56,7 +56,7 @@ export default function ResultPage() {
   const GRAY = "#888888"
 
   useEffect(() => {
-    fetch(`/api/results/${token}`)
+    fetch(`/api/get-result?token=${token}`)
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false) })
   }, [token])
