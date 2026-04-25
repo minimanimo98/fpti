@@ -83,6 +83,17 @@ function MascotSvg({ expression, size = 120 }: { expression: string; size?: numb
   )
 }
 
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
 export default function ResultPage() {
   const { token } = useParams()
   const router = useRouter()
@@ -91,11 +102,10 @@ export default function ResultPage() {
   const [copied, setCopied] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
   const [generating, setGenerating] = useState(false)
-  const cardRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const fetchResult = () => {
-      fetch(`/api/get-result?token=${token}`).then(r => r.json()).then(d => { setData(d); setLoading(false) })
+      fetch('/api/get-result?token=' + token).then(r => r.json()).then(d => { setData(d); setLoading(false) })
     }
     fetchResult()
     const interval = setInterval(fetchResult, 10000)
@@ -104,55 +114,55 @@ export default function ResultPage() {
 
   const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
-  const generateImageBlob = async (): Promise<Blob | null> => {
+  const fetchImageBlob = async (): Promise<Blob | null> => {
     try {
-      const response = await fetch(`/api/result-image?token=${token}`)
-      if (!response.ok) return null
-      return await response.blob()
+      const res = await fetch('/api/result-image?token=' + token)
+      if (!res.ok) return null
+      return await res.blob()
     } catch (e) {
       return null
     }
-    }
+  }
 
   const handleSaveImage = async () => {
     setGenerating(true)
-    try {
-      const blob = await generateImageBlob()
-      if (!blob) { setGenerating(false); return }
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `FPTI_${data?.nickname || 'result'}.png`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-    } catch (e) {
-      alert('저장 실패. 다시 시도해주세요.')
+    const blob = await fetchImageBlob()
+    if (!blob) {
+      alert('이미지 생성에 실패했어요.')
+      setGenerating(false)
+      return
     }
+    const filename = 'FPTI_' + (data?.nickname || 'result') + '.png'
+    downloadBlob(blob, filename)
     setGenerating(false)
     setShowShareModal(false)
   }
 
   const handleSystemShare = async () => {
     setGenerating(true)
+    const blob = await fetchImageBlob()
+    if (!blob) {
+      alert('이미지 생성에 실패했어요.')
+      setGenerating(false)
+      return
+    }
+    const filename = 'FPTI_' + (data?.nickname || 'result') + '.png'
+    const file = new File([blob], filename, { type: 'image/png' })
+    const shareData: any = {
+      title: 'FPTI 결과',
+      text: '나 ' + data.typeName + '래 ㅋㅋ\n' + data.score + '/100점\n\nfpti.kr',
+    }
     try {
-      const blob = await generateImageBlob()
-      if (!blob) { setGenerating(false); return }
-      const file = new File([blob], `FPTI_${data?.nickname}.png`, { type: 'image/png' })
-      const shareData: any = {
-        title: 'FPTI 결과',
-        text: `나 ${data.typeName}래 ㅋㅋ\n${data.score}/100점\n\nfpti.kr`,
-      }
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         shareData.files = [file]
       } else {
-        shareData.url = `https://fpti.kr/result/${token}`
+        shareData.url = 'https://fpti.kr/result/' + token
       }
       await navigator.share(shareData)
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        alert('공유 실패. 이미지 저장 후 직접 올려주세요.')
+        downloadBlob(blob, filename)
+        alert('공유가 안 돼서 이미지를 저장했어요.\n갤러리에서 직접 올려주세요.')
       }
     }
     setGenerating(false)
@@ -161,34 +171,28 @@ export default function ResultPage() {
 
   const handleInstagramStory = async () => {
     setGenerating(true)
-    try {
-      const blob = await generateImageBlob()
-      if (!blob) { setGenerating(false); return }
-      navigator.clipboard.writeText(`https://fpti.kr`)
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `FPTI_${data?.nickname || 'result'}.png`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-      setTimeout(() => {
-        window.location.href = 'instagram://story-camera'
-        setTimeout(() => {
-          alert('이미지를 저장했어요!\n\n인스타 앱이 없으면\n갤러리에서 직접 스토리에 올려주세요 📸')
-        }, 1500)
-      }, 800)
-    } catch (e) {
-      alert('실패했어요. 이미지 저장 후 직접 올려주세요.')
+    const blob = await fetchImageBlob()
+    if (!blob) {
+      alert('이미지 생성에 실패했어요.')
+      setGenerating(false)
+      return
     }
+    const filename = 'FPTI_' + (data?.nickname || 'result') + '.png'
+    navigator.clipboard.writeText('https://fpti.kr')
+    downloadBlob(blob, filename)
+    setTimeout(() => {
+      window.location.href = 'instagram://story-camera'
+      setTimeout(() => {
+        alert('이미지를 저장했어요!\n\n갤러리에서 스토리에 올려주세요 📸')
+      }, 1500)
+    }, 800)
     setGenerating(false)
     setShowShareModal(false)
   }
 
   const handleShareMore = () => {
-    const url = `https://fpti.kr/test/${token}`
-    const text = `내 인성 평가해줘 🥺\n\n👉 ${url}`
+    const url = 'https://fpti.kr/test/' + token
+    const text = '내 인성 평가해줘 🥺\n\n👉 ' + url
     if (navigator.share) {
       navigator.share({ title: 'FPTI', text, url }).catch(() => {})
     } else {
@@ -204,7 +208,6 @@ export default function ResultPage() {
     </main>
   )
 
-  // 빈 상태 - 답변자 0명
   if (data?.empty) return (
     <main style={{ minHeight: '100vh', background: '#F5E6D8', paddingLeft: 16, paddingRight: 16 }}>
       <div style={{ maxWidth: 448, marginLeft: 'auto', marginRight: 'auto', boxSizing: 'border-box', paddingTop: 48, paddingBottom: 48 }}>
@@ -244,7 +247,6 @@ export default function ResultPage() {
     </main>
   )
 
-  // 잠금 상태 - 1명만 답함
   if (data?.locked) return (
     <main style={{ minHeight: '100vh', background: '#F5E6D8', paddingLeft: 16, paddingRight: 16 }}>
       <div style={{ maxWidth: 448, marginLeft: 'auto', marginRight: 'auto', boxSizing: 'border-box', paddingTop: 32, paddingBottom: 48 }}>
@@ -264,7 +266,6 @@ export default function ResultPage() {
           }}>처음으로</button>
         </header>
 
-        {/* 잠금 카드 */}
         <div style={{
           background: '#FFF8EE',
           borderRadius: 20,
@@ -275,7 +276,6 @@ export default function ResultPage() {
           width: '100%',
           textAlign: 'center',
         }}>
-          {/* 캐릭터 (졸린 표정) */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
             <div style={{ position: 'relative', width: 160, height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{
@@ -313,7 +313,6 @@ export default function ResultPage() {
           </div>
         </div>
 
-        {/* 액션 */}
         <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <button onClick={handleShareMore} style={{
             width: '100%', padding: 16, fontSize: 15, borderRadius: 16,
@@ -337,9 +336,7 @@ export default function ResultPage() {
     </main>
   )
 
-  // 정상 결과 표시 (2명 이상)
   if (!data?.typeName) return null
-  
   const typeInfo = TYPE_INFO[data.typeName] || TYPE_INFO['무난무취형']
 
   return (
@@ -373,7 +370,7 @@ export default function ResultPage() {
           <div style={{ flex: 1, height: 4, background: '#E5D4C0', borderRadius: 2, overflow: 'hidden' }}>
             <div style={{
               height: '100%',
-              width: `${data.accuracyPercent || 50}%`,
+              width: (data.accuracyPercent || 50) + '%',
               background: '#C97D5A',
               transition: 'width 0.6s ease',
             }} />
@@ -383,7 +380,7 @@ export default function ResultPage() {
           </span>
         </div>
 
-        <div ref={cardRef} style={{
+        <div style={{
           background: '#FFF8EE',
           borderRadius: 20,
           padding: '24px 16px 28px',
@@ -400,7 +397,7 @@ export default function ResultPage() {
 
           <div style={{ textAlign: 'center', marginBottom: 12 }}>
             <div style={{ fontSize: 11, letterSpacing: 2, color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
-              — FPTI No.{(token as string).slice(0, 4).toUpperCase()} —
+              FPTI No.{(token as string).slice(0, 4).toUpperCase()}
             </div>
           </div>
 
@@ -462,7 +459,7 @@ export default function ResultPage() {
 
           <div style={{ textAlign: 'center', marginTop: 20, paddingTop: 12, borderTop: '1px dashed #E5D4C0' }}>
             <div style={{ fontSize: 11, color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
-              {data.nickname}'s FPTI · fpti.kr
+              {data.nickname}'s FPTI
             </div>
           </div>
         </div>
@@ -523,7 +520,7 @@ export default function ResultPage() {
                 </strong>
                 <p style={{ fontSize: 11, marginTop: 4, color: '#5A4030', lineHeight: 1.5 }}>
                   지금 <strong style={{ color: '#2C1810' }}>{data.count}명</strong>이 답했어요.{' '}
-                  {data.count < 3 ? `${3 - data.count}명만 더 답하면 정확도가 올라가요.` : `${5 - data.count}명만 더 답하면 100%가 돼요.`}
+                  {data.count < 3 ? (3 - data.count) + '명만 더 답하면 정확도가 올라가요.' : (5 - data.count) + '명만 더 답하면 100%가 돼요.'}
                 </p>
               </div>
             </div>
@@ -551,13 +548,13 @@ export default function ResultPage() {
           </button>
 
           <button onClick={() => {
-            navigator.clipboard.writeText(`https://fpti.kr/result/${token}`)
+            navigator.clipboard.writeText('https://fpti.kr/result/' + token)
             setCopied(true)
             setTimeout(() => setCopied(false), 2000)
           }} style={{
             width: '100%', padding: 12, fontSize: 12, borderRadius: 16,
             background: 'transparent', color: copied ? '#2C1810' : '#6B5544',
-            border: `1.5px solid ${copied ? '#2C1810' : '#E5D4C0'}`,
+            border: '1.5px solid ' + (copied ? '#2C1810' : '#E5D4C0'),
             fontFamily: 'var(--font-mono)', cursor: 'pointer', boxSizing: 'border-box',
           }}>
             {copied ? '✓ 결과 링크 복사됨' : '🔗 결과 링크 복사'}
