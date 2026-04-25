@@ -105,22 +105,14 @@ export default function ResultPage() {
   const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
   const generateImageBlob = async (): Promise<Blob | null> => {
-    if (!cardRef.current) return null
-    const html2canvas = (await import('html2canvas')).default
-    const canvas = await html2canvas(cardRef.current, {
-      backgroundColor: '#F5E6D8',
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      width: cardRef.current.offsetWidth,
-      height: cardRef.current.offsetHeight,
-      windowWidth: cardRef.current.offsetWidth,
-      windowHeight: cardRef.current.offsetHeight,
-    })
-    return new Promise((resolve) => {
-      canvas.toBlob((blob) => resolve(blob), 'image/png')
-    })
-  }
+    try {
+      const response = await fetch(`/api/result-image?token=${token}`)
+      if (!response.ok) return null
+      return await response.blob()
+    } catch (e) {
+      return null
+    }
+    }
 
   const handleSaveImage = async () => {
     setGenerating(true)
