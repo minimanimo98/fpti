@@ -49,18 +49,14 @@ export default function TestPage() {
   const [submitting, setSubmitting] = useState(false)
   const [current, setCurrent] = useState(0)
 
-  const INK = "#0a0a0a"
-  const HIGHLIGHT = "#FFEE00"
-  const GRAY = "#888888"
-
-  const progress = Math.round((Object.keys(answers).length / QUESTIONS.length) * 100)
+  const progress = Math.round(((current + 1) / QUESTIONS.length) * 100)
   const q = QUESTIONS[current]
 
   const handleAnswer = (value: number) => {
     const newAnswers = { ...answers, [q.id]: value }
     setAnswers(newAnswers)
     if (current < QUESTIONS.length - 1) {
-      setTimeout(() => setCurrent(current + 1), 300)
+      setTimeout(() => setCurrent(current + 1), 250)
     }
   }
 
@@ -89,63 +85,101 @@ export default function TestPage() {
   const allAnswered = Object.keys(answers).length === QUESTIONS.length
 
   return (
-    <main className="min-h-screen" style={{ background: '#fff' }}>
-      {/* 상단 진행률 바 */}
-      <div style={{ height: '4px', background: '#eee' }}>
+    <main className="min-h-screen" style={{ background: '#FFE4D9', color: '#3D2817' }}>
+      {/* 상단 진행 바 */}
+      <div style={{ height: 6, background: '#FFCFBA' }}>
         <div
           style={{
             height: '100%',
             width: `${progress}%`,
-            background: HIGHLIGHT,
+            background: '#FFEE00',
             transition: 'width 0.3s ease',
           }}
         />
       </div>
 
-      {/* 상단 바 */}
-      <div
-        className="flex justify-between px-6 py-4 text-[11px] uppercase tracking-wider"
-        style={{ fontFamily: "var(--font-mono)", borderBottom: `1px solid #eee` }}
-      >
-        <div style={{ color: GRAY }}>{current + 1} / {QUESTIONS.length}</div>
-        <div style={{ color: GRAY }}>{progress}% 완료</div>
-      </div>
+      <div className="max-w-[480px] mx-auto px-6">
+        {/* 상단 정보 */}
+        <header className="py-5 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ background: '#FFEE00', boxShadow: '0 2px 0 #3D2817' }}
+            >
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: '#3D2817' }}>F</span>
+            </div>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>FPTI</span>
+          </div>
+          <div
+            className="text-xs px-3 py-1.5 rounded-full"
+            style={{
+              background: '#fff',
+              border: '1.5px solid #FFCFBA',
+              fontFamily: 'var(--font-mono)',
+              color: '#7A5A47',
+            }}
+          >
+            {current + 1} / {QUESTIONS.length}
+          </div>
+        </header>
 
-      {/* 문항 */}
-      <section className="px-6 pt-10 pb-6">
-        <div
-          className="text-xs mb-6 pl-2.5"
-          style={{ fontFamily: "var(--font-mono)", borderLeft: `3px solid ${HIGHLIGHT}`, color: GRAY }}
-        >
-          {q.category}
+        {/* 카테고리 라벨 */}
+        <div className="flex justify-center pt-4 pb-3">
+          <span
+            className="text-xs px-3 py-1.5 rounded-full"
+            style={{
+              background: '#FFEE00',
+              color: '#3D2817',
+              fontFamily: 'var(--font-display)',
+              border: '1.5px solid #3D2817',
+            }}
+          >
+            {q.category}
+          </span>
         </div>
 
-        <h2
-          className="leading-snug mb-10"
+        {/* 문항 카드 */}
+        <div
+          className="rounded-2xl p-6 mb-6"
           style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "clamp(24px, 6vw, 40px)",
-            minHeight: '120px',
+            background: '#fff',
+            border: '2.5px solid #3D2817',
+            boxShadow: '0 5px 0 #FF8A65',
+            minHeight: 160,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
-          {q.text}
-        </h2>
+          <h2
+            className="text-center leading-snug"
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(20px, 5.5vw, 28px)',
+              color: '#3D2817',
+            }}
+          >
+            {q.text}
+          </h2>
+        </div>
 
         {/* 답변 선택지 */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5 pb-6">
           {CHOICES.map((choice) => {
             const isSelected = answers[q.id] === choice.value
             return (
               <button
                 key={choice.value}
                 onClick={() => handleAnswer(choice.value)}
-                className="w-full py-4 px-5 text-left text-base transition-all"
+                className="w-full py-4 px-5 text-center text-base transition-all rounded-2xl"
                 style={{
-                  background: isSelected ? INK : '#fff',
-                  color: isSelected ? '#fff' : INK,
-                  border: `2px solid ${isSelected ? INK : '#ddd'}`,
-                  fontFamily: "var(--font-body)",
+                  background: isSelected ? '#3D2817' : '#fff',
+                  color: isSelected ? '#fff' : '#3D2817',
+                  border: `2px solid ${isSelected ? '#3D2817' : '#FFCFBA'}`,
+                  boxShadow: isSelected ? '0 3px 0 #FF8A65' : '0 2px 0 #FFCFBA',
+                  fontFamily: 'var(--font-display)',
                   cursor: 'pointer',
+                  fontSize: 15,
                 }}
               >
                 {choice.label}
@@ -153,42 +187,43 @@ export default function TestPage() {
             )
           })}
         </div>
-      </section>
 
-      {/* 이전/다음 버튼 */}
-      <div className="px-6 pb-12 flex gap-3">
-        {current > 0 && (
-          <button
-            onClick={() => setCurrent(current - 1)}
-            className="py-4 px-6 text-base"
-            style={{
-              background: '#fff',
-              color: INK,
-              border: `2px solid ${INK}`,
-              fontFamily: "var(--font-display)",
-              cursor: 'pointer',
-            }}
-          >
-            ← 이전
-          </button>
-        )}
+        {/* 이전/다음 */}
+        <div className="pb-12 flex gap-3">
+          {current > 0 && (
+            <button
+              onClick={() => setCurrent(current - 1)}
+              className="py-3 px-5 text-sm rounded-xl"
+              style={{
+                background: '#fff',
+                color: '#7A5A47',
+                border: '1.5px solid #FFCFBA',
+                fontFamily: 'var(--font-display)',
+                cursor: 'pointer',
+              }}
+            >
+              ← 이전
+            </button>
+          )}
 
-        {isLast && allAnswered && (
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="flex-1 py-4 text-lg"
-            style={{
-              background: submitting ? GRAY : INK,
-              color: '#fff',
-              border: 'none',
-              fontFamily: "var(--font-display)",
-              cursor: submitting ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {submitting ? '제출 중...' : '답변 제출하기 →'}
-          </button>
-        )}
+          {isLast && allAnswered && (
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="flex-1 py-4 text-base rounded-2xl"
+              style={{
+                background: submitting ? '#A8826A' : '#3D2817',
+                color: '#fff',
+                border: 'none',
+                fontFamily: 'var(--font-display)',
+                cursor: submitting ? 'not-allowed' : 'pointer',
+                boxShadow: submitting ? 'none' : '0 4px 0 #FF8A65',
+              }}
+            >
+              {submitting ? '제출 중...' : '답변 제출하기 →'}
+            </button>
+          )}
+        </div>
       </div>
     </main>
   )
