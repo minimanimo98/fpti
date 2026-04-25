@@ -89,7 +89,8 @@ export default function ResultPage() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
+  const [generating, setGenerating] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -101,6 +102,115 @@ export default function ResultPage() {
     return () => clearInterval(interval)
   }, [token])
 
+  const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
+  // 카드를 PNG Blob으로 만드는 헬퍼
+  const generateImageBlob = async (): Promise<Blob | null> => {
+    if (!cardRef.current) return null
+    const html2canvas = (await import('html2canvas')).default
+    const canvas = await html2canvas(cardRef.current, {
+      backgroundColor: '#F5E6D8',
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      width: cardRef.current.offsetWidth,
+      height: cardRef.current.offsetHeight,
+      windowWidth: cardRef.current.offsetWidth,
+      windowHeight: cardRef.current.offsetHeight,
+    })
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => resolve(blob), 'image/png')
+    })
+  }
+
+  // 결과 이미지 저장 (다운로드)
+  const handleSaveImage = async () => {
+    setGenerating(true)
+    try {
+      const blob = await generateImageBlob()
+      if (!blob) { setGenerating(false); return }
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `FPTI_${data?.nickname || 'result'}.png`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      alert('저장 실패. 다시 시도해주세요.')
+    }
+    setGenerating(false)
+    setShowShareModal(false)
+  }
+
+  // 시스템 공유 (이미지 + 링크)
+  const handleSystemShare = async () => {
+    setGenerating(true)
+    try {
+      const blob = await generateImageBlob()
+      if (!blob) { setGenerating(false); return }
+      
+      const file = new File([blob], `FPTI_${data?.nickname}.png`, { type: 'image/png' })
+      const shareData: any = {
+        title: 'FPTI 결과',
+        text: `나 ${data.typeName}래 ㅋㅋ\n${data.score}/100점\n\nfpti.kr`,
+      }
+
+      // 이미지 공유 가능한지 체크
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        shareData.files = [file]
+      } else {
+        shareData.url = `https://fpti.kr/result/${token}`
+      }
+
+      await navigator.share(shareData)
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        alert('공유 실패. 이미지 저장 후 직접 올려주세요.')
+      }
+    }
+    setGenerating(false)
+    setShowShareModal(false)
+  }
+
+  // 인스타 스토리 직접 열기 (iOS만 잘 작동)
+  const handleInstagramStory = async () => {
+    setGenerating(true)
+    try {
+      // 일단 이미지 다운로드
+      const blob = await generateImageBlob()
+      if (!blob) { setGenerating(false); return }
+
+      // 클립보드에 링크 복사
+      navigator.clipboard.writeText(`https://fpti.kr`)
+
+      // 이미지 다운로드
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `FPTI_${data?.nickname || 'result'}.png`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      // 1초 후 인스타 앱 열기
+      setTimeout(() => {
+        window.location.href = 'instagram://story-camera'
+        
+        // 앱이 없으면 웹사이트로
+        setTimeout(() => {
+          alert('이미지를 저장했어요!\n\n인스타 앱이 없으면\n갤러리에서 직접 스토리에 올려주세요 📸')
+        }, 1500)
+      }, 800)
+    } catch (e) {
+      alert('실패했어요. 이미지 저장 후 직접 올려주세요.')
+    }
+    setGenerating(false)
+    setShowShareModal(false)
+  }
+
   const handleShareMore = () => {
     const url = `https://fpti.kr/test/${token}`
     const text = `내 인성 평가해줘 🥺\n\n👉 ${url}`
@@ -110,34 +220,6 @@ export default function ResultPage() {
       navigator.clipboard.writeText(url)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    }
-  }
-
-  const handleSaveImage = async () => {
-    if (!cardRef.current) return
-    setSaving(true)
-    try {
-      const html2canvas = (await import('html2canvas')).default
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: '#F5E6D8',
-        scale: 2,
-        useCORS: true,
-      })
-      canvas.toBlob((blob) => {
-        if (!blob) { setSaving(false); return }
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `FPTI_${data?.nickname || 'result'}.png`
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
-        setSaving(false)
-      }, 'image/png')
-    } catch (e) {
-      alert('저장 실패. 스크린샷을 이용해주세요.')
-      setSaving(false)
     }
   }
 
@@ -192,7 +274,6 @@ export default function ResultPage() {
     <main style={{ minHeight: '100vh', background: '#F5E6D8', color: '#2C1810', paddingLeft: 16, paddingRight: 16, paddingBottom: 48 }}>
       <div style={{ maxWidth: 448, marginLeft: 'auto', marginRight: 'auto', boxSizing: 'border-box' }}>
 
-        {/* 헤더 */}
         <header style={{ paddingTop: 20, paddingBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{
@@ -214,7 +295,6 @@ export default function ResultPage() {
           </div>
         </header>
 
-        {/* 정확도 라벨 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, paddingLeft: 4, paddingRight: 4 }}>
           <span style={{ fontSize: 11, color: '#9B8268', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
             {data.accuracyLabel || '결과'}
@@ -232,88 +312,96 @@ export default function ResultPage() {
           </span>
         </div>
 
-        {/* === 메인 결과 카드 === */}
-        <div ref={cardRef} style={{ background: '#F5E6D8', padding: '4px 0' }}>
+        {/* === 메인 결과 카드 (이미지 저장 대상) === */}
+        <div ref={cardRef} style={{
+          background: '#FFF8EE',
+          borderRadius: 20,
+          padding: '24px 16px 28px',
+          border: '2.5px solid #2C1810',
+          boxShadow: '0 6px 0 #C97D5A',
+          boxSizing: 'border-box',
+          width: '100%',
+          position: 'relative',
+        }}>
+          <div style={{ position: 'absolute', top: 10, left: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', top: 10, right: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', bottom: 10, left: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', bottom: 10, right: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
+
+          <div style={{ textAlign: 'center', marginBottom: 12 }}>
+            <div style={{ fontSize: 11, letterSpacing: 2, color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
+              — FPTI No.{(token as string).slice(0, 4).toUpperCase()} —
+            </div>
+          </div>
+
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', height: 180, marginTop: 12, marginBottom: 12 }}>
+            <div style={{
+              position: 'absolute',
+              width: 160, height: 160,
+              background: '#FFD96B',
+              borderRadius: '50%',
+              opacity: 0.35,
+            }} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <MascotSvg expression={typeInfo.expression} size={160} />
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'center', marginBottom: 12 }}>
+            <div style={{ fontSize: 11, marginBottom: 4, color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
+              인성 점수
+            </div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 56, lineHeight: 1, color: '#2C1810' }}>
+              {data.score}
+              <span style={{ fontSize: 22, color: '#9B8268', marginLeft: 4 }}>/ 100</span>
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'center', marginBottom: 16 }}>
+            <h1 style={{
+              lineHeight: 1.2,
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(24px, 7vw, 32px)',
+              color: '#2C1810',
+            }}>
+              {data.typeName}
+            </h1>
+          </div>
+
+          {/* 해시태그 - 잘림 방지 */}
           <div style={{
-            position: 'relative',
-            background: '#FFF8EE',
-            borderRadius: 20,
-            padding: '24px 20px 28px',
-            border: '2.5px solid #2C1810',
-            boxShadow: '0 6px 0 #C97D5A',
-            boxSizing: 'border-box',
-            width: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 6,
+            marginBottom: 16,
+            flexWrap: 'wrap',
+            paddingLeft: 4,
+            paddingRight: 4,
           }}>
-            {/* 모서리 점 */}
-            <div style={{ position: 'absolute', top: 10, left: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
-            <div style={{ position: 'absolute', top: 10, right: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
-            <div style={{ position: 'absolute', bottom: 10, left: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
-            <div style={{ position: 'absolute', bottom: 10, right: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
-
-            <div style={{ textAlign: 'center', marginBottom: 12 }}>
-              <div style={{ fontSize: 11, letterSpacing: 2, color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
-                — FPTI No.{(token as string).slice(0, 4).toUpperCase()} —
-              </div>
-            </div>
-
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', height: 180, marginTop: 12, marginBottom: 12 }}>
-              <div style={{
-                position: 'absolute',
-                width: 160, height: 160,
-                background: '#FFD96B',
-                borderRadius: '50%',
-                opacity: 0.35,
-              }} />
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <MascotSvg expression={typeInfo.expression} size={160} />
-              </div>
-            </div>
-
-            <div style={{ textAlign: 'center', marginBottom: 12 }}>
-              <div style={{ fontSize: 11, marginBottom: 4, color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
-                인성 점수
-              </div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 56, lineHeight: 1, color: '#2C1810' }}>
-                {data.score}
-                <span style={{ fontSize: 22, color: '#9B8268', marginLeft: 4 }}>/ 100</span>
-              </div>
-            </div>
-
-            <div style={{ textAlign: 'center', marginBottom: 16 }}>
-              <h1 style={{
-                lineHeight: 1.2,
-                fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(26px, 7.5vw, 34px)',
-                color: '#2C1810',
+            {typeInfo.tags.map((tag, i) => (
+              <span key={i} style={{
+                fontSize: 10,
+                padding: '4px 8px',
+                borderRadius: 999,
+                background: '#fff',
+                color: '#6B5544',
+                border: '1px solid #E5D4C0',
+                fontFamily: 'var(--font-mono)',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}>
-                {data.typeName}
-              </h1>
-            </div>
+                #{tag}
+              </span>
+            ))}
+          </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 16, flexWrap: 'wrap', paddingLeft: 8, paddingRight: 8 }}>
-              {typeInfo.tags.map((tag, i) => (
-                <span key={i} style={{
-                  fontSize: 11,
-                  padding: '4px 10px',
-                  borderRadius: 999,
-                  background: '#fff',
-                  color: '#6B5544',
-                  border: '1px solid #E5D4C0',
-                  fontFamily: 'var(--font-mono)',
-                }}>
-                  #{tag}
-                </span>
-              ))}
-            </div>
+          <p style={{ fontSize: 12, textAlign: 'center', lineHeight: 1.6, paddingLeft: 8, paddingRight: 8, color: '#5A4030' }}>
+            {typeInfo.desc}
+          </p>
 
-            <p style={{ fontSize: 13, textAlign: 'center', lineHeight: 1.6, paddingLeft: 8, paddingRight: 8, color: '#5A4030' }}>
-              {typeInfo.desc}
-            </p>
-
-            <div style={{ textAlign: 'center', marginTop: 20, paddingTop: 12, borderTop: '1px dashed #E5D4C0' }}>
-              <div style={{ fontSize: 11, color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
-                {data.nickname}'s FPTI · fpti.kr
-              </div>
+          <div style={{ textAlign: 'center', marginTop: 20, paddingTop: 12, borderTop: '1px dashed #E5D4C0' }}>
+            <div style={{ fontSize: 11, color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
+              {data.nickname}'s FPTI · fpti.kr
             </div>
           </div>
         </div>
@@ -321,13 +409,9 @@ export default function ResultPage() {
         {/* 친구들 동의 항목 */}
         {data.topItems && data.topItems.length > 0 && (
           <div style={{
-            borderRadius: 16,
-            padding: 18,
-            marginTop: 20,
-            background: '#fff',
-            border: '1.5px solid #E5D4C0',
-            boxSizing: 'border-box',
-            width: '100%',
+            borderRadius: 16, padding: 18, marginTop: 20,
+            background: '#fff', border: '1.5px solid #E5D4C0',
+            boxSizing: 'border-box', width: '100%',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#C97D5A' }} />
@@ -344,16 +428,11 @@ export default function ResultPage() {
           </div>
         )}
 
-        {/* 동의 못한 항목 */}
         {data.bottomItems && data.bottomItems.length > 0 && (
           <div style={{
-            borderRadius: 16,
-            padding: 18,
-            marginTop: 12,
-            background: '#fff',
-            border: '1.5px solid #E5D4C0',
-            boxSizing: 'border-box',
-            width: '100%',
+            borderRadius: 16, padding: 18, marginTop: 12,
+            background: '#fff', border: '1.5px solid #E5D4C0',
+            boxSizing: 'border-box', width: '100%',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#2C1810' }} />
@@ -370,16 +449,11 @@ export default function ResultPage() {
           </div>
         )}
 
-        {/* 더 정확한 결과 안내 */}
         {data.count < 5 && (
           <div style={{
-            borderRadius: 16,
-            padding: 14,
-            marginTop: 20,
-            background: '#fff',
-            border: '2px solid #C97D5A',
-            boxSizing: 'border-box',
-            width: '100%',
+            borderRadius: 16, padding: 14, marginTop: 20,
+            background: '#fff', border: '2px solid #C97D5A',
+            boxSizing: 'border-box', width: '100%',
           }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
               <div style={{ fontSize: 18, flexShrink: 0 }}>📊</div>
@@ -396,25 +470,25 @@ export default function ResultPage() {
           </div>
         )}
 
-        {/* 액션 버튼 */}
         <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <button onClick={handleShareMore} style={{
+          {/* 결과 공유 (메인) */}
+          <button onClick={() => setShowShareModal(true)} style={{
             width: '100%', padding: 16, fontSize: 15, borderRadius: 16,
             background: '#2C1810', color: '#fff',
             fontFamily: 'var(--font-display)', border: 'none',
             cursor: 'pointer', boxShadow: '0 4px 0 #C97D5A', boxSizing: 'border-box',
           }}>
-            친구에게 평가 더 받기
+            📸 결과 자랑하기
           </button>
 
-          <button onClick={handleSaveImage} disabled={saving} style={{
+          <button onClick={handleShareMore} style={{
             width: '100%', padding: 14, fontSize: 13, borderRadius: 16,
             background: '#fff', color: '#2C1810',
             fontFamily: 'var(--font-display)',
             border: '2px solid #2C1810',
-            cursor: saving ? 'wait' : 'pointer', boxSizing: 'border-box',
+            cursor: 'pointer', boxSizing: 'border-box',
           }}>
-            {saving ? '저장 중...' : '📸 결과 이미지 저장'}
+            친구에게 평가 더 받기
           </button>
 
           <button onClick={() => {
@@ -440,6 +514,104 @@ export default function ResultPage() {
           </button>
         </div>
       </div>
+
+      {/* 공유 모달 */}
+      {showShareModal && (
+        <div onClick={() => !generating && setShowShareModal(false)} style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          zIndex: 1000,
+        }}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: '#FFF8EE',
+            borderRadius: '24px 24px 0 0',
+            padding: 24, width: '100%', maxWidth: 480,
+            boxSizing: 'border-box',
+          }}>
+            <div style={{
+              width: 40, height: 4, background: '#E5D4C0',
+              borderRadius: 2, margin: '0 auto 20px',
+            }} />
+
+            <h3 style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 18, color: '#2C1810',
+              textAlign: 'center', marginBottom: 4,
+            }}>
+              결과 공유하기
+            </h3>
+            <p style={{ fontSize: 12, color: '#9B8268', textAlign: 'center', marginBottom: 20 }}>
+              결과를 친구들과 공유해보세요
+            </p>
+
+            {generating && (
+              <div style={{ textAlign: 'center', padding: 20, color: '#6B5544', fontSize: 13 }}>
+                이미지 생성 중...
+              </div>
+            )}
+
+            {!generating && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {isMobile && (
+                  <button onClick={handleInstagramStory} style={{
+                    width: '100%', padding: 16, fontSize: 14,
+                    borderRadius: 14,
+                    background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
+                    color: '#fff',
+                    fontFamily: 'var(--font-display)',
+                    border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                    boxSizing: 'border-box',
+                  }}>
+                    <span style={{ fontSize: 18 }}>📷</span>
+                    인스타 스토리에 공유
+                  </button>
+                )}
+
+                {isMobile && typeof navigator !== 'undefined' && 'share' in navigator && (
+                  <button onClick={handleSystemShare} style={{
+                    width: '100%', padding: 16, fontSize: 14,
+                    borderRadius: 14,
+                    background: '#2C1810', color: '#fff',
+                    fontFamily: 'var(--font-display)',
+                    border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                    boxSizing: 'border-box',
+                  }}>
+                    <span style={{ fontSize: 18 }}>📤</span>
+                    카톡/다른 앱으로 공유
+                  </button>
+                )}
+
+                <button onClick={handleSaveImage} style={{
+                  width: '100%', padding: 16, fontSize: 14,
+                  borderRadius: 14,
+                  background: '#fff', color: '#2C1810',
+                  fontFamily: 'var(--font-display)',
+                  border: '2px solid #E5D4C0', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                  boxSizing: 'border-box',
+                }}>
+                  <span style={{ fontSize: 18 }}>💾</span>
+                  이미지 저장만 하기
+                </button>
+
+                <button onClick={() => setShowShareModal(false)} style={{
+                  width: '100%', padding: 12, fontSize: 13,
+                  borderRadius: 14, marginTop: 8,
+                  background: 'transparent', color: '#9B8268',
+                  fontFamily: 'var(--font-mono)',
+                  border: 'none', cursor: 'pointer',
+                  boxSizing: 'border-box',
+                }}>
+                  취소
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   )
 }
