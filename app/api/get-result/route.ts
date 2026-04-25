@@ -55,16 +55,48 @@ export async function GET(request: Request) {
     .eq('user_id', user.id)
 
   if (!responses || responses.length === 0) {
-    return NextResponse.json({ nickname: user.nickname, count: 0, locked: true })
+    return NextResponse.json({
+      nickname: user.nickname,
+      count: 0,
+      locked: true,
+      empty: true,
+    })
+  }
+
+  // 2명 미만이면 결과 잠금 (점수/유형 숨김)
+  if (responses.length < 2) {
+    return NextResponse.json({
+      nickname: user.nickname,
+      count: responses.length,
+      locked: true,
+      needMore: 2 - responses.length,
+    })
   }
 
   const allAnswers = responses.map(r => r.answers)
   const result = calcScore(allAnswers)
 
+  let accuracy = 'low'
+  let accuracyLabel = '윤곽만 잡힘'
+  let accuracyPercent = 50
+
+  if (responses.length >= 5) {
+    accuracy = 'high'
+    accuracyLabel = '높은 정확도'
+    accuracyPercent = 100
+  } else if (responses.length >= 3) {
+    accuracy = 'normal'
+    accuracyLabel = '정확도 양호'
+    accuracyPercent = 80
+  }
+
   return NextResponse.json({
     nickname: user.nickname,
     count: responses.length,
-    locked: responses.length < 3,
+    locked: false,
+    accuracy,
+    accuracyLabel,
+    accuracyPercent,
     ...result,
   })
 }
