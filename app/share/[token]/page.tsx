@@ -58,46 +58,130 @@ export default function SharePage() {
   }
 
   return (
-    <main className="min-h-screen px-6 py-10" style={{ background: '#FFE4D9', color: '#3D2817' }}>
-      <header className="max-w-[480px] mx-auto flex justify-between items-center mb-8">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: '#FFEE00', boxShadow: '0 2px 0 #3D2817' }}
-          >
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>F</span>
+    <main className="min-h-screen" style={{ background: '#FFE4D9', color: '#3D2817' }}>
+      <div className="max-w-[480px] mx-auto px-6">
+        {/* 헤더 */}
+        <header className="py-6 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: '#FFEE00', boxShadow: '0 3px 0 #3D2817' }}
+            >
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: '#3D2817' }}>F</span>
+            </div>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>FPTI</span>
           </div>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 18 }}>FPTI</span>
-        </div>
-        <button
-          onClick={() => router.push('/')}
-          className="text-xs px-3 py-1.5 rounded-full"
-          style={{ color: '#7A5A47', background: '#fff', border: '1px solid #FFCFBA' }}
-        >
-          처음으로
-        </button>
-      </header>
+          <button
+            onClick={() => router.push('/')}
+            className="text-xs px-3 py-2 rounded-full"
+            style={{ color: '#7A5A47', background: '#fff', border: '1.5px solid #FFCFBA' }}
+          >
+            처음으로
+          </button>
+        </header>
 
-      <div className="max-w-[480px] mx-auto">
-        {/* 본인 결과 링크 강조 */}
+        {/* 응답 카운터 (가장 위로 - 제일 중요) */}
+        <div
+          className="p-5 mb-5 rounded-2xl flex items-center justify-between"
+          style={{
+            background: count >= 3 ? '#FFEE00' : '#fff',
+            border: '2.5px solid #3D2817',
+            boxShadow: '0 5px 0 ' + (count >= 3 ? '#3D2817' : '#FF8A65'),
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <div className="text-xs mb-1" style={{ color: '#7A5A47' }}>
+              {count >= 3 ? '✓ 결과 공개됐어요!' : count > 0 ? '응답 진행 중' : '응답 대기 중'}
+            </div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: '#3D2817' }}>
+              {count >= 3
+                ? '잠시 후 결과로 이동'
+                : count > 0
+                  ? `${3 - count}명 더 답하면 정확도 ↑`
+                  : '한 명만 답해도 임시 결과'}
+            </div>
+          </div>
+          <div
+            className="flex-shrink-0 ml-3"
+            style={{ fontFamily: 'var(--font-display)', fontSize: 36, color: '#3D2817', lineHeight: 1 }}
+          >
+            {count}<span style={{ fontSize: 18, color: '#A8826A' }}>/3</span>
+          </div>
+        </div>
+
+        {/* 메인 안내 */}
+        <h1
+          className="leading-[1.2] mb-3 text-center"
+          style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 8vw, 38px)', color: '#3D2817' }}
+        >
+          친구에게<br />
+          <span
+            style={{
+              display: 'inline-block',
+              background: 'linear-gradient(180deg, transparent 60%, #FFEE00 60%)',
+              padding: '0 4px',
+            }}
+          >
+            평가받기
+          </span>
+        </h1>
+
+        <p className="text-sm text-center mb-6" style={{ color: '#5A4030' }}>
+          친구가 답하면 점수가 집계됩니다
+        </p>
+
+        {/* 공유 버튼 (가장 큰 액션) */}
+        <button
+          onClick={handleShare}
+          className="w-full py-5 text-base rounded-2xl mb-3 transition-all"
+          style={{
+            background: '#3D2817',
+            color: '#fff',
+            fontFamily: 'var(--font-display)',
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 5px 0 #FF8A65',
+            fontSize: 17,
+          }}
+        >
+          💛 카톡/메시지로 공유
+        </button>
+
+        <button
+          onClick={handleCopy}
+          className="w-full py-3 text-sm rounded-2xl mb-6"
+          style={{
+            background: copied ? '#FFEE00' : '#fff',
+            color: '#3D2817',
+            border: '2px solid #FFCFBA',
+            fontFamily: 'var(--font-mono)',
+            cursor: 'pointer',
+          }}
+        >
+          {copied ? '✓ 복사됐어요!' : '🔗 평가 링크만 복사'}
+        </button>
+
+        {/* 본인 결과 페이지 저장 안내 */}
         <div
           className="p-5 mb-5 rounded-2xl"
           style={{
             background: '#fff',
-            border: '2px solid #FFEE00',
+            border: '2px solid #FFCFBA',
             boxShadow: '0 4px 0 #FFCFBA',
           }}
         >
-          <div className="flex items-center gap-2 mb-2">
-            <span style={{ fontSize: 20 }}>⭐</span>
-            <strong style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: '#3D2817' }}>
-              여기 꼭 저장하세요
-            </strong>
+          <div className="flex items-start gap-3 mb-3">
+            <div style={{ fontSize: 20, lineHeight: 1.2 }}>⭐</div>
+            <div style={{ minWidth: 0 }}>
+              <strong style={{ fontFamily: 'var(--font-display)', fontSize: 15, color: '#3D2817' }}>
+                내 결과 페이지 저장
+              </strong>
+              <p className="text-xs mt-1" style={{ color: '#7A5A47', lineHeight: 1.5 }}>
+                <strong style={{ color: '#3D2817' }}>{nickname}</strong>님 결과 링크예요.<br />
+                메모장이나 카톡에 저장하세요.
+              </p>
+            </div>
           </div>
-          <p className="text-sm mb-3" style={{ color: '#5A4030', lineHeight: 1.5 }}>
-            <strong>{nickname}</strong>님의 결과 페이지예요.<br />
-            이 링크 잃어버리면 결과 못 봐요.
-          </p>
           <div className="flex gap-2">
             <button
               onClick={() => {
@@ -110,99 +194,32 @@ export default function SharePage() {
                 color: '#fff',
                 fontFamily: 'var(--font-display)',
                 border: 'none',
-                boxShadow: '0 3px 0 #FF8A65',
+                cursor: 'pointer',
               }}
             >
-              📋 결과 링크 저장
+              📋 링크 저장
             </button>
             <button
               onClick={() => router.push(`/result/${token}`)}
-              className="px-4 py-3 text-sm rounded-xl"
+              className="flex-1 py-3 text-sm rounded-xl"
               style={{
                 background: '#FFEE00',
                 color: '#3D2817',
                 fontFamily: 'var(--font-display)',
                 border: '2px solid #3D2817',
+                cursor: 'pointer',
               }}
             >
-              보기 →
+              결과 보기 →
             </button>
           </div>
         </div>
 
-        {/* 응답 카운터 */}
+        {/* 링크 미리보기 */}
         <div
-          className="p-5 mb-5 rounded-2xl flex items-center justify-between"
+          className="p-3 mb-8 text-xs break-all rounded-xl text-center"
           style={{
-            background: count >= 3 ? '#FFEE00' : '#fff',
-            border: '2px solid #3D2817',
-            boxShadow: '0 4px 0 ' + (count >= 3 ? '#3D2817' : '#FFCFBA'),
-          }}
-        >
-          <div>
-            <div className="text-xs mb-1" style={{ color: '#7A5A47' }}>
-              {count >= 3 ? '✓ 결과 공개됐어요!' : count > 0 ? '응답 진행 중' : '응답 대기 중'}
-            </div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: '#3D2817' }}>
-              {count >= 3 ? '잠시 후 결과로 이동' : count > 0 ? `${3 - count}명 더 답하면 정확도 ↑` : '한 명만 답해도 임시 결과'}
-            </div>
-          </div>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: 32, color: '#3D2817' }}>
-            {count}/3
-          </div>
-        </div>
-
-        {/* 메인 안내 */}
-        <h1
-          className="leading-tight mb-3 text-center"
-          style={{ fontFamily: 'var(--font-display)', fontSize: 36, color: '#3D2817' }}
-        >
-          친구에게<br />
-          <span
-            className="inline-block px-2 rounded-lg mt-1"
-            style={{ background: '#FFEE00', boxShadow: '0 3px 0 #3D2817' }}
-          >
-            평가받기
-          </span>
-        </h1>
-
-        <p className="text-sm text-center mb-6" style={{ color: '#5A4030' }}>
-          친구가 답하면 점수가 집계됩니다
-        </p>
-
-        {/* 공유 버튼 */}
-        <button
-          onClick={handleShare}
-          className="w-full py-4 text-base rounded-2xl mb-3 transition-all"
-          style={{
-            background: '#3D2817',
-            color: '#fff',
-            fontFamily: 'var(--font-display)',
-            border: 'none',
-            cursor: 'pointer',
-            boxShadow: '0 4px 0 #FF8A65',
-          }}
-        >
-          💛 카톡/메시지로 공유
-        </button>
-
-        <button
-          onClick={handleCopy}
-          className="w-full py-3 text-sm rounded-2xl mb-6"
-          style={{
-            background: copied ? '#FFEE00' : '#fff',
-            color: '#3D2817',
-            border: '1.5px solid #FFCFBA',
-            fontFamily: 'var(--font-mono)',
-          }}
-        >
-          {copied ? '✓ 복사됐어요!' : '🔗 평가 링크만 복사'}
-        </button>
-
-        <div
-          className="p-3 text-xs break-all rounded-xl"
-          style={{
-            border: '1px dashed #FFCFBA',
+            border: '1.5px dashed #FFCFBA',
             fontFamily: 'var(--font-mono)',
             background: '#fff',
             color: '#A8826A',
