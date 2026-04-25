@@ -35,38 +35,16 @@ function calc(answers: Record<number, number>[]) {
   return { score, typeName }
 }
 
-// SVG 마스코트 (모드별 표정 다름)
-function Mascot({ expression }: { expression: 'peek' | 'smirk' | 'sleepy' }) {
-  return (
-    <svg width="280" height="280" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="72" cy="128" rx="50" ry="6" fill="rgba(0,0,0,0.08)" />
-      <circle cx="70" cy="65" r="55" fill="#FFEE00" stroke="#0a0a0a" strokeWidth="3.5" />
-      <circle cx="42" cy="78" r="4" fill="#FF9999" opacity="0.5" />
-      <circle cx="98" cy="78" r="4" fill="#FF9999" opacity="0.5" />
-      {expression === 'peek' && (
-        <>
-          <path d="M 45 60 Q 53 56 61 60" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-          <circle cx="92" cy="60" r="6" fill="#0a0a0a" />
-          <circle cx="94" cy="58" r="2" fill="#fff" />
-          <path d="M 60 85 Q 70 92 82 85" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-        </>
-      )}
-      {expression === 'smirk' && (
-        <>
-          <path d="M 45 60 L 60 60" stroke="#0a0a0a" strokeWidth="3.5" strokeLinecap="round" />
-          <path d="M 80 60 L 95 60" stroke="#0a0a0a" strokeWidth="3.5" strokeLinecap="round" />
-          <path d="M 58 88 Q 75 82 85 90" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-        </>
-      )}
-      {expression === 'sleepy' && (
-        <>
-          <path d="M 45 62 Q 53 66 61 62" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-          <path d="M 82 62 Q 90 66 98 62" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-          <ellipse cx="70" cy="88" rx="6" ry="3" fill="#0a0a0a" />
-        </>
-      )}
-    </svg>
-  )
+function svgDataUrl(expression: 'peek' | 'smirk' | 'sleepy'): string {
+  const eyes = expression === 'peek'
+    ? '<path d="M 45 60 Q 53 56 61 60" stroke="#0a0a0a" stroke-width="3.5" fill="none" stroke-linecap="round" /><circle cx="92" cy="60" r="6" fill="#0a0a0a" /><circle cx="94" cy="58" r="2" fill="#fff" /><path d="M 60 85 Q 70 92 82 85" stroke="#0a0a0a" stroke-width="3.5" fill="none" stroke-linecap="round" />'
+    : expression === 'smirk'
+    ? '<path d="M 45 60 L 60 60" stroke="#0a0a0a" stroke-width="3.5" stroke-linecap="round" /><path d="M 80 60 L 95 60" stroke="#0a0a0a" stroke-width="3.5" stroke-linecap="round" /><path d="M 58 88 Q 75 82 85 90" stroke="#0a0a0a" stroke-width="3.5" fill="none" stroke-linecap="round" />'
+    : '<path d="M 45 62 Q 53 66 61 62" stroke="#0a0a0a" stroke-width="3.5" fill="none" stroke-linecap="round" /><path d="M 82 62 Q 90 66 98 62" stroke="#0a0a0a" stroke-width="3.5" fill="none" stroke-linecap="round" /><ellipse cx="70" cy="88" rx="6" ry="3" fill="#0a0a0a" />'
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" width="280" height="280"><ellipse cx="72" cy="128" rx="50" ry="6" fill="rgba(0,0,0,0.08)" /><circle cx="70" cy="65" r="55" fill="#FFEE00" stroke="#0a0a0a" stroke-width="3.5" /><circle cx="42" cy="78" r="4" fill="#FF9999" opacity="0.5" /><circle cx="98" cy="78" r="4" fill="#FF9999" opacity="0.5" />${eyes}</svg>`
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
 }
 
 export async function GET(request: Request) {
@@ -105,13 +83,15 @@ export async function GET(request: Request) {
     const expression: 'peek' | 'smirk' | 'sleepy' =
       showEvaluate ? 'peek' : isPending ? 'sleepy' : 'smirk'
 
+    const mascotUrl = svgDataUrl(expression)
+
     return new ImageResponse(
       (
         <div style={{
           width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
           background: '#FAFAFA', padding: '60px 70px',
         }}>
-          {/* 상단: 로고 */}
+          {/* 로고 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 30 }}>
             <div style={{
               display: 'flex',
@@ -124,9 +104,8 @@ export async function GET(request: Request) {
             <div style={{ display: 'flex', fontSize: 32, fontWeight: 900, color: '#0a0a0a' }}>FPTI</div>
           </div>
 
-          {/* 본문 + 마스코트 */}
+          {/* 본문 */}
           <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'space-between', gap: 40 }}>
-            {/* 좌측 텍스트 */}
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
               {showEvaluate ? (
                 <>
@@ -167,10 +146,8 @@ export async function GET(request: Request) {
               )}
             </div>
 
-            {/* 우측 마스코트 */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Mascot expression={expression} />
-            </div>
+            {/* 마스코트 (이미지로) */}
+            <img src={mascotUrl} width="280" height="280" alt="" />
           </div>
 
           {/* 하단 */}
