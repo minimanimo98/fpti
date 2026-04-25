@@ -9,6 +9,7 @@ export default function SharePage() {
   const [copied, setCopied] = useState(false)
   const [count, setCount] = useState(0)
   const [nickname, setNickname] = useState('친구')
+  const [showShareModal, setShowShareModal] = useState(false)
   const shareUrl = `https://fpti.kr/test/${token}`
   const resultUrl = `https://fpti.kr/result/${token}`
 
@@ -36,20 +37,69 @@ export default function SharePage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  // 디바이스 감지
+  const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  const isIOS = typeof window !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent)
+
+  // 메인 공유 버튼
   const handleShare = async () => {
-    const shareText = `내 인성 평가해줘 🥺\n\n👉 ${shareUrl}\n\n(내 결과는 여기서: ${resultUrl})`
-    if (navigator.share) {
+    const shareText = `내 인성 평가해줘 🥺\n\n👉 ${shareUrl}`
+
+    // 1. 모바일이면 Web Share API 시도
+    if (isMobile && navigator.share) {
       try {
-        await navigator.share({ title: 'FPTI - 내 인성 평가해줘', text: shareText, url: shareUrl })
+        await navigator.share({
+          title: 'FPTI - 내 인성 평가해줘',
+          text: shareText,
+          url: shareUrl,
+        })
+        return
       } catch (err) {
-        if ((err as Error).name !== 'AbortError') handleCopy()
+        // 사용자가 취소했거나 미지원
+        if ((err as Error).name === 'AbortError') return
       }
-    } else {
-      handleCopy()
     }
+
+    // 2. 안 되면 공유 모달 표시
+    setShowShareModal(true)
   }
 
-  // 응답 상태별 메시지
+  // 카카오톡 직접 열기 (모바일)
+  const openKakaoTalk = () => {
+    const text = `내 인성 평가해줘 🥺\n\n${shareUrl}`
+    navigator.clipboard.writeText(text)
+    
+    if (isIOS) {
+      // iOS: 카톡 앱 열기
+      window.location.href = 'kakaotalk://'
+    } else {
+      // Android: 카톡 인텐트
+      window.location.href = 'intent://send?msg=' + encodeURIComponent(text) + '#Intent;scheme=kakaolink;package=com.kakao.talk;end'
+    }
+    
+    setTimeout(() => {
+      alert('링크가 복사됐어요!\n카톡에 붙여넣기 하세요.')
+    }, 1000)
+    
+    setShowShareModal(false)
+  }
+
+  // 문자 메시지 열기
+  const openSMS = () => {
+    const text = `내 인성 평가해줘 🥺\n\n${shareUrl}`
+    window.location.href = `sms:?body=${encodeURIComponent(text)}`
+    setShowShareModal(false)
+  }
+
+  // 그냥 링크 복사
+  const copyLink = () => {
+    const text = `내 인성 평가해줘 🥺\n\n${shareUrl}`
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+    setShowShareModal(false)
+  }
+
   const getStatusMessage = () => {
     if (count === 0) return { title: '응답 대기 중', sub: '한 명만 답해도 임시 결과를 볼 수 있어요' }
     if (count < 3) return { title: '응답 진행 중', sub: `${3 - count}명만 더 답하면 정확도가 올라가요` }
@@ -78,7 +128,6 @@ export default function SharePage() {
           </button>
         </header>
 
-        {/* 응답 카운터 - 0/3 제거하고 응답자 수만 표시 */}
         <div style={{
           padding: 16,
           marginBottom: 16,
@@ -148,7 +197,7 @@ export default function SharePage() {
             boxShadow: '0 5px 0 #C97D5A',
             boxSizing: 'border-box',
           }}>
-          💛 카톡/메시지로 공유
+          📤 친구에게 공유하기
         </button>
 
         <button onClick={handleCopy}
@@ -168,7 +217,6 @@ export default function SharePage() {
           {copied ? '✓ 복사됐어요' : '🔗 평가 링크만 복사'}
         </button>
 
-        {/* 결과 보기 (응답 1명 이상일 때만) */}
         {count > 0 && (
           <button onClick={() => router.push(`/result/${token}`)}
             style={{
@@ -245,6 +293,106 @@ export default function SharePage() {
           {shareUrl}
         </div>
       </div>
+
+      {/* 공유 모달 */}
+      {showShareModal && (
+        <div
+          onClick={() => setShowShareModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.4)',
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#FFF8EE',
+              borderRadius: '24px 24px 0 0',
+              padding: 24,
+              width: '100%',
+              maxWidth: 480,
+              boxSizing: 'border-box',
+            }}
+          >
+            <div style={{
+              width: 40, height: 4, background: '#E5D4C0',
+              borderRadius: 2, margin: '0 auto 20px',
+            }} />
+
+            <h3 style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 18, color: '#2C1810',
+              textAlign: 'center', marginBottom: 4,
+            }}>
+              어떻게 공유할까요?
+            </h3>
+            <p style={{ fontSize: 12, color: '#9B8268', textAlign: 'center', marginBottom: 20 }}>
+              친구에게 평가 링크를 보내주세요
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {isMobile && (
+                <>
+                  <button onClick={openKakaoTalk} style={{
+                    width: '100%', padding: 16, fontSize: 14,
+                    borderRadius: 14,
+                    background: '#FEE500', color: '#2C1810',
+                    fontFamily: 'var(--font-display)',
+                    border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                    boxSizing: 'border-box',
+                  }}>
+                    <span style={{ fontSize: 18 }}>💬</span>
+                    카카오톡으로 보내기
+                  </button>
+
+                  <button onClick={openSMS} style={{
+                    width: '100%', padding: 16, fontSize: 14,
+                    borderRadius: 14,
+                    background: '#fff', color: '#2C1810',
+                    fontFamily: 'var(--font-display)',
+                    border: '2px solid #E5D4C0', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                    boxSizing: 'border-box',
+                  }}>
+                    <span style={{ fontSize: 18 }}>📱</span>
+                    문자로 보내기
+                  </button>
+                </>
+              )}
+
+              <button onClick={copyLink} style={{
+                width: '100%', padding: 16, fontSize: 14,
+                borderRadius: 14,
+                background: '#2C1810', color: '#fff',
+                fontFamily: 'var(--font-display)',
+                border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                boxSizing: 'border-box',
+              }}>
+                <span style={{ fontSize: 18 }}>🔗</span>
+                링크 복사하기
+              </button>
+
+              <button onClick={() => setShowShareModal(false)} style={{
+                width: '100%', padding: 12, fontSize: 13,
+                borderRadius: 14, marginTop: 8,
+                background: 'transparent', color: '#9B8268',
+                fontFamily: 'var(--font-mono)',
+                border: 'none', cursor: 'pointer',
+                boxSizing: 'border-box',
+              }}>
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
