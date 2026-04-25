@@ -6,7 +6,7 @@ export async function POST(request: Request) {
 
   const { data: user, error: userError } = await supabase
     .from('users')
-    .select('id')
+    .select('id, response_count')
     .eq('share_token', token)
     .single()
 
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
   await supabase
     .from('users')
-    .update({ response_count: user.response_count + 1 })
+    .update({ response_count: (user.response_count || 0) + 1 })
     .eq('id', user.id)
 
   return NextResponse.json({ success: true })
