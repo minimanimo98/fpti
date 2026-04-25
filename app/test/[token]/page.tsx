@@ -4,34 +4,34 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 
 const QUESTIONS = [
-  { id: 1, text: "○○은 친구가 우울해 보일 때 먼저 말을 건다", category: "공감", reverse: false },
-  { id: 2, text: "○○은 남의 얘기를 자기 얘기처럼 들어준다", category: "공감", reverse: false },
-  { id: 3, text: "○○은 친구가 힘들어할 때 조언보다 위로가 먼저다", category: "공감", reverse: false },
-  { id: 4, text: "○○은 상대방 말이 끝나기도 전에 자기 할 말을 한다", category: "공감", reverse: true },
-  { id: 5, text: "○○은 친구의 기분 변화를 잘 알아챈다", category: "공감", reverse: false },
-  { id: 6, text: "○○은 약속 시간에 늦지 않는다", category: "책임감", reverse: false },
-  { id: 7, text: "○○은 한다고 한 일은 반드시 한다", category: "책임감", reverse: false },
-  { id: 8, text: "○○은 자기가 잘못했을 때 깔끔하게 사과한다", category: "책임감", reverse: false },
-  { id: 9, text: "○○은 일이 꼬이면 남 탓부터 찾는다", category: "책임감", reverse: true },
-  { id: 10, text: "○○한테 비밀을 말해도 새어나가지 않을 것 같다", category: "신뢰", reverse: false },
-  { id: 11, text: "○○은 허세나 과장이 심하다", category: "신뢰", reverse: true },
-  { id: 12, text: "○○은 앞에서 하는 말과 뒤에서 하는 말이 다르다", category: "신뢰", reverse: true },
-  { id: 13, text: "○○은 돈 관련된 일에 깔끔하다", category: "신뢰", reverse: false },
-  { id: 14, text: "○○은 밥 먹을 때 다른 사람 속도에 맞춰 먹는다", category: "배려", reverse: false },
-  { id: 15, text: "○○은 친구의 생일이나 기념일을 잘 챙긴다", category: "배려", reverse: false },
-  { id: 16, text: "○○은 자기 편한 것보다 친구가 편한 걸 먼저 생각한다", category: "배려", reverse: false },
-  { id: 17, text: "○○은 약속 장소를 늘 자기 집 근처로 잡는다", category: "배려", reverse: true },
-  { id: 18, text: "○○은 같이 있으면 웃음이 끊이지 않는다", category: "유머", reverse: false },
-  { id: 19, text: "○○은 어색한 분위기를 잘 풀어준다", category: "유머", reverse: false },
-  { id: 20, text: "○○은 드립 타율이 좋다", category: "유머", reverse: false },
-  { id: 21, text: "○○은 같이 놀고 나면 또 부르고 싶다", category: "유머", reverse: false },
-  { id: 22, text: "○○은 대화의 8할이 자기 얘기다", category: "이기심", reverse: true },
-  { id: 23, text: "○○은 본인 기분이 나쁘면 주변이 다 눈치 본다", category: "이기심", reverse: true },
-  { id: 24, text: "○○은 필요할 때만 연락이 온다", category: "이기심", reverse: true },
-  { id: 25, text: "○○은 손해 보는 일은 절대 하지 않는다", category: "이기심", reverse: true },
-  { id: 26, text: "솔직히 ○○은 좀 재수없을 때가 있다", category: "보너스", reverse: true },
-  { id: 27, text: "○○은 애인한테는 잘할 것 같다", category: "보너스", reverse: false },
-  { id: 28, text: "내가 큰 잘못을 했을 때 ○○한테는 제일 먼저 말하고 싶지 않다", category: "보너스", reverse: true },
+  { id: 1, text: "○○은 친구가 우울해 보일 때 먼저 말을 건다", section: "Section A", reverse: false },
+  { id: 2, text: "○○은 남의 얘기를 자기 얘기처럼 들어준다", section: "Section A", reverse: false },
+  { id: 3, text: "○○은 친구가 힘들어할 때 조언보다 위로가 먼저다", section: "Section A", reverse: false },
+  { id: 4, text: "○○은 상대방 말이 끝나기도 전에 자기 할 말을 한다", section: "Section A", reverse: true },
+  { id: 5, text: "○○은 친구의 기분 변화를 잘 알아챈다", section: "Section A", reverse: false },
+  { id: 6, text: "○○은 약속 시간에 늦지 않는다", section: "Section B", reverse: false },
+  { id: 7, text: "○○은 한다고 한 일은 반드시 한다", section: "Section B", reverse: false },
+  { id: 8, text: "○○은 자기가 잘못했을 때 깔끔하게 사과한다", section: "Section B", reverse: false },
+  { id: 9, text: "○○은 일이 꼬이면 남 탓부터 찾는다", section: "Section B", reverse: true },
+  { id: 10, text: "○○한테 비밀을 말해도 새어나가지 않을 것 같다", section: "Section C", reverse: false },
+  { id: 11, text: "○○은 허세나 과장이 심하다", section: "Section C", reverse: true },
+  { id: 12, text: "○○은 앞에서 하는 말과 뒤에서 하는 말이 다르다", section: "Section C", reverse: true },
+  { id: 13, text: "○○은 돈 관련된 일에 깔끔하다", section: "Section C", reverse: false },
+  { id: 14, text: "○○은 밥 먹을 때 다른 사람 속도에 맞춰 먹는다", section: "Section D", reverse: false },
+  { id: 15, text: "○○은 친구의 생일이나 기념일을 잘 챙긴다", section: "Section D", reverse: false },
+  { id: 16, text: "○○은 자기 편한 것보다 친구가 편한 걸 먼저 생각한다", section: "Section D", reverse: false },
+  { id: 17, text: "○○은 약속 장소를 늘 자기 집 근처로 잡는다", section: "Section D", reverse: true },
+  { id: 18, text: "○○은 같이 있으면 웃음이 끊이지 않는다", section: "Section E", reverse: false },
+  { id: 19, text: "○○은 어색한 분위기를 잘 풀어준다", section: "Section E", reverse: false },
+  { id: 20, text: "○○은 드립 타율이 좋다", section: "Section E", reverse: false },
+  { id: 21, text: "○○은 같이 놀고 나면 또 부르고 싶다", section: "Section E", reverse: false },
+  { id: 22, text: "○○은 대화의 8할이 자기 얘기다", section: "Section F", reverse: true },
+  { id: 23, text: "○○은 본인 기분이 나쁘면 주변이 다 눈치 본다", section: "Section F", reverse: true },
+  { id: 24, text: "○○은 필요할 때만 연락이 온다", section: "Section F", reverse: true },
+  { id: 25, text: "○○은 손해 보는 일은 절대 하지 않는다", section: "Section F", reverse: true },
+  { id: 26, text: "솔직히 ○○은 좀 재수없을 때가 있다", section: "Section X", reverse: true },
+  { id: 27, text: "○○은 애인한테는 잘할 것 같다", section: "Section X", reverse: false },
+  { id: 28, text: "내가 큰 잘못을 했을 때 ○○한테는 제일 먼저 말하고 싶지 않다", section: "Section X", reverse: true },
 ]
 
 const BASE_CHOICES = [
@@ -52,16 +52,11 @@ export default function TestPage() {
   const [alreadyVoted, setAlreadyVoted] = useState(false)
   const [checking, setChecking] = useState(true)
 
-  // 중복 답변 체크 (페이지 진입 즉시)
   useEffect(() => {
     if (typeof token !== 'string') return
-    
     const votedKey = `fpti_voted_${token}`
     const hasVoted = localStorage.getItem(votedKey)
-    
-    if (hasVoted) {
-      setAlreadyVoted(true)
-    }
+    if (hasVoted) setAlreadyVoted(true)
     setChecking(false)
   }, [token])
 
@@ -71,6 +66,7 @@ export default function TestPage() {
 
   const progress = Math.round(((current + 1) / QUESTIONS.length) * 100)
   const q = QUESTIONS[current]
+  const isHiddenSection = q.section === "Section X"
 
   const shuffledChoices = (() => {
     const seed = shuffleSeeds[current] ?? 0
@@ -102,7 +98,6 @@ export default function TestPage() {
       body: JSON.stringify({ token, answers }),
     })
     if (res.ok) {
-      // 답변 완료 시 localStorage에 기록
       localStorage.setItem(`fpti_voted_${token}`, new Date().toISOString())
       router.push(`/test/${token}/done`)
     } else {
@@ -114,7 +109,6 @@ export default function TestPage() {
   const isLast = current === QUESTIONS.length - 1
   const allAnswered = Object.keys(answers).length === QUESTIONS.length
 
-  // 체크 중
   if (checking) {
     return (
       <main style={{ minHeight: '100vh', background: '#F5E6D8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -123,7 +117,6 @@ export default function TestPage() {
     )
   }
 
-  // 이미 답변한 사용자
   if (alreadyVoted) {
     return (
       <main style={{ minHeight: '100vh', background: '#F5E6D8', color: '#2C1810', paddingLeft: 16, paddingRight: 16 }}>
@@ -184,7 +177,6 @@ export default function TestPage() {
     )
   }
 
-  // 정상 답변 화면
   return (
     <main style={{ minHeight: '100vh', background: '#F5E6D8', color: '#2C1810' }}>
       <div style={{ height: 5, background: '#E5D4C0' }}>
@@ -214,11 +206,16 @@ export default function TestPage() {
 
           <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 16, paddingBottom: 12 }}>
             <span style={{
-              fontSize: 11, padding: '6px 14px', borderRadius: 999,
-              background: '#FFD96B', color: '#2C1810',
-              fontFamily: 'var(--font-display)', border: '1.5px solid #2C1810',
+              fontSize: 11,
+              padding: '6px 14px',
+              borderRadius: 999,
+              background: isHiddenSection ? '#2C1810' : '#fff',
+              color: isHiddenSection ? '#FFD96B' : '#6B5544',
+              fontFamily: 'var(--font-mono)',
+              border: `1.5px solid ${isHiddenSection ? '#2C1810' : '#E5D4C0'}`,
+              letterSpacing: 1,
             }}>
-              {q.category}
+              {isHiddenSection ? '🔒 ' : ''}{q.section}
             </span>
           </div>
 
