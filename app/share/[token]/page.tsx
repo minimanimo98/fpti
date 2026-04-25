@@ -24,14 +24,11 @@ export default function SharePage() {
       const data = await res.json()
       setCount(data.count || 0)
       if (data.nickname) setNickname(data.nickname)
-      if (data.count >= 3) {
-        setTimeout(() => router.push(`/result/${token}`), 1500)
-      }
     }
     fetchCount()
     const interval = setInterval(fetchCount, 5000)
     return () => clearInterval(interval)
-  }, [token, router])
+  }, [token])
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareUrl)
@@ -52,11 +49,19 @@ export default function SharePage() {
     }
   }
 
+  // 응답 상태별 메시지
+  const getStatusMessage = () => {
+    if (count === 0) return { title: '응답 대기 중', sub: '한 명만 답해도 임시 결과를 볼 수 있어요' }
+    if (count < 3) return { title: '응답 진행 중', sub: `${3 - count}명만 더 답하면 정확도가 올라가요` }
+    if (count < 5) return { title: '결과 공개됨', sub: `${5 - count}명만 더 답하면 정확도 100%` }
+    return { title: '결과 공개됨', sub: '높은 정확도로 결과가 나왔어요' }
+  }
+  const status = getStatusMessage()
+
   return (
     <main style={{ minHeight: '100vh', background: '#F5E6D8', color: '#2C1810', paddingLeft: 16, paddingRight: 16 }}>
       <div style={{ maxWidth: 448, marginLeft: 'auto', marginRight: 'auto', boxSizing: 'border-box' }}>
 
-        {/* 헤더 */}
         <header style={{ paddingTop: 20, paddingBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{
@@ -73,7 +78,7 @@ export default function SharePage() {
           </button>
         </header>
 
-        {/* 응답 카운터 */}
+        {/* 응답 카운터 - 0/3 제거하고 응답자 수만 표시 */}
         <div style={{
           padding: 16,
           marginBottom: 16,
@@ -89,18 +94,22 @@ export default function SharePage() {
         }}>
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ fontSize: 11, color: '#9B8268', fontFamily: 'var(--font-mono)', marginBottom: 2 }}>
-              {count >= 3 ? '결과 공개됨' : count > 0 ? '응답 진행 중' : '응답 대기 중'}
+              {status.title}
             </div>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: '#2C1810' }}>
-              {count >= 3 ? '잠시 후 결과로 이동' : count > 0 ? `${3 - count}명 더 답하면 정확도 ↑` : '한 명만 답해도 임시 결과'}
+              {status.sub}
             </div>
           </div>
-          <div style={{ flexShrink: 0, marginLeft: 12, fontFamily: 'var(--font-display)', fontSize: 32, color: '#2C1810', lineHeight: 1 }}>
-            {count}<span style={{ fontSize: 16, color: '#9B8268' }}>/3</span>
+          <div style={{ flexShrink: 0, marginLeft: 12, textAlign: 'right' }}>
+            <div style={{ fontSize: 10, color: '#9B8268', fontFamily: 'var(--font-mono)', marginBottom: 2 }}>
+              총 응답
+            </div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 28, color: '#2C1810', lineHeight: 1 }}>
+              {count}<span style={{ fontSize: 14, color: '#9B8268', marginLeft: 2 }}>명</span>
+            </div>
           </div>
         </div>
 
-        {/* 메인 안내 */}
         <h1 style={{
           lineHeight: 1.2,
           marginBottom: 8,
@@ -124,7 +133,6 @@ export default function SharePage() {
           친구가 답하면 점수가 집계됩니다
         </p>
 
-        {/* 메인 공유 버튼 */}
         <button onClick={handleShare}
           style={{
             width: '100%',
@@ -160,7 +168,27 @@ export default function SharePage() {
           {copied ? '✓ 복사됐어요' : '🔗 평가 링크만 복사'}
         </button>
 
-        {/* 본인 결과 링크 저장 */}
+        {/* 결과 보기 (응답 1명 이상일 때만) */}
+        {count > 0 && (
+          <button onClick={() => router.push(`/result/${token}`)}
+            style={{
+              width: '100%',
+              padding: '14px',
+              fontSize: 14,
+              borderRadius: 16,
+              marginBottom: 24,
+              background: '#FFD96B',
+              color: '#2C1810',
+              border: '2px solid #2C1810',
+              fontFamily: 'var(--font-display)',
+              cursor: 'pointer',
+              boxShadow: '0 3px 0 #2C1810',
+              boxSizing: 'border-box',
+            }}>
+            👀 지금까지 결과 보기
+          </button>
+        )}
+
         <div style={{
           padding: 16,
           marginBottom: 16,
@@ -182,43 +210,25 @@ export default function SharePage() {
               </p>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => {
-              navigator.clipboard.writeText(resultUrl)
-              alert('결과 링크 복사됨!\n메모장이나 카톡에 저장하세요.')
-            }} style={{
-              flex: 1,
-              padding: '12px',
-              fontSize: 13,
-              borderRadius: 12,
-              background: '#2C1810',
-              color: '#fff',
-              fontFamily: 'var(--font-display)',
-              border: 'none',
-              cursor: 'pointer',
-              boxSizing: 'border-box',
-            }}>
-              📋 링크 저장
-            </button>
-            <button onClick={() => router.push(`/result/${token}`)}
-              style={{
-                flex: 1,
-                padding: '12px',
-                fontSize: 13,
-                borderRadius: 12,
-                background: '#fff',
-                color: '#2C1810',
-                fontFamily: 'var(--font-display)',
-                border: '2px solid #2C1810',
-                cursor: 'pointer',
-                boxSizing: 'border-box',
-              }}>
-              결과 보기 →
-            </button>
-          </div>
+          <button onClick={() => {
+            navigator.clipboard.writeText(resultUrl)
+            alert('결과 링크 복사됨!\n메모장이나 카톡에 저장하세요.')
+          }} style={{
+            width: '100%',
+            padding: '12px',
+            fontSize: 13,
+            borderRadius: 12,
+            background: '#2C1810',
+            color: '#fff',
+            fontFamily: 'var(--font-display)',
+            border: 'none',
+            cursor: 'pointer',
+            boxSizing: 'border-box',
+          }}>
+            📋 결과 링크 저장
+          </button>
         </div>
 
-        {/* 링크 미리보기 */}
         <div style={{
           padding: 12,
           marginBottom: 32,
