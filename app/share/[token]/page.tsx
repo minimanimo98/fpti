@@ -10,10 +10,14 @@ export default function SharePage() {
   const [count, setCount] = useState(0)
   const [nickname, setNickname] = useState('친구')
   const shareUrl = `https://fpti.kr/test/${token}`
+  const resultUrl = `https://fpti.kr/result/${token}`
 
-  const INK = "#0a0a0a"
-  const HIGHLIGHT = "#FFEE00"
-  const GRAY = "#888888"
+  // 본인 토큰 localStorage에 저장 (페이지 들어오는 즉시)
+  useEffect(() => {
+    if (typeof token === 'string') {
+      localStorage.setItem('fpti_my_token', token)
+    }
+  }, [token])
 
   useEffect(() => {
     const fetchCount = async () => {
@@ -36,9 +40,9 @@ export default function SharePage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // 모바일 공유 (Web Share API)
+  // 공유 메시지에 본인 결과 링크도 포함
   const handleShare = async () => {
-    const shareText = `내 인성 평가해줘 🥺\n${nickname}이(가) 어떤 사람인지 솔직하게 답해줘.\n2분이면 끝!`
+    const shareText = `내 인성 평가해줘 🥺\n\n👉 ${shareUrl}\n\n(내 결과는 여기서: ${resultUrl})`
 
     if (navigator.share) {
       try {
@@ -48,10 +52,7 @@ export default function SharePage() {
           url: shareUrl,
         })
       } catch (err) {
-        // 사용자가 취소한 경우는 무시
-        if ((err as Error).name !== 'AbortError') {
-          handleCopy()
-        }
+        if ((err as Error).name !== 'AbortError') handleCopy()
       }
     } else {
       handleCopy()
@@ -59,112 +60,156 @@ export default function SharePage() {
   }
 
   return (
-    <main className="min-h-screen px-6 py-12" style={{ background: '#fff' }}>
-      <div
-        className="flex justify-between mb-12 pb-5 text-[11px] uppercase tracking-wider"
-        style={{ fontFamily: "var(--font-mono)", borderBottom: `2px solid ${INK}` }}
-      >
-        <div className="font-bold">FPTI.KR</div>
-        <div style={{ color: GRAY }}>STEP 1/3</div>
-      </div>
-
-      <div
-        className="text-xs mb-8 pl-2.5 leading-snug"
-        style={{ fontFamily: "var(--font-mono)", borderLeft: `3px solid ${HIGHLIGHT}` }}
-      >
-        링크 생성 완료<br />
-        이제 친구에게 보내세요
-      </div>
-
-      <h1
-        className="leading-none tracking-tight mb-4"
-        style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 9vw, 64px)" }}
-      >
-        링크를<br />
-        <span className="px-2.5 inline-block" style={{ background: HIGHLIGHT, transform: "rotate(-1deg)" }}>
-          친구에게
-        </span>
-        <br />
-        보내세요.
-      </h1>
-
-      <p className="text-base leading-relaxed mb-8" style={{ color: '#333', fontWeight: 500 }}>
-        친구가 링크를 클릭해서 답변하면<br />
-        당신의 인성 점수가 집계됩니다.
-      </p>
-
-      <div
-        className="px-5 py-4 mb-6 flex items-center justify-between"
-        style={{
-          background: count >= 3 ? HIGHLIGHT : '#f5f5f5',
-          border: `2px solid ${INK}`,
-          fontFamily: 'var(--font-mono)',
-        }}
-      >
-        <div className="text-xs" style={{ color: count >= 3 ? INK : GRAY }}>
-          {count >= 3 ? '✓ 결과 공개 가능!' : '응답 대기 중'}
+    <main className="min-h-screen px-6 py-10" style={{ background: '#FAFAFA', color: '#0a0a0a' }}>
+      {/* 헤더 */}
+      <header className="max-w-[480px] mx-auto flex justify-between items-center mb-8">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: '#FFEE00', boxShadow: '0 2px 0 #0a0a0a' }}
+          >
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>F</span>
+          </div>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 18 }}>FPTI</span>
         </div>
-        <div className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
-          {count} / 3
+        <button
+          onClick={() => router.push('/')}
+          className="text-xs px-3 py-1.5 rounded-full"
+          style={{ color: '#666', background: '#fff', border: '1px solid #e5e5e5' }}
+        >
+          처음으로
+        </button>
+      </header>
+
+      <div className="max-w-[480px] mx-auto">
+        {/* 본인 결과 링크 - 강조 (북마크 안내) */}
+        <div
+          className="p-5 mb-6 rounded-2xl"
+          style={{
+            background: '#FFFBE5',
+            border: '2px solid #FFEE00',
+          }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <span style={{ fontSize: 20 }}>⭐</span>
+            <strong style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>
+              여기 꼭 저장하세요
+            </strong>
+          </div>
+          <p className="text-sm mb-3" style={{ color: '#444', lineHeight: 1.5 }}>
+            <strong>{nickname}</strong>님의 결과 페이지예요.<br />
+            이 링크 잃어버리면 결과 못 봐요.
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(resultUrl)
+                alert('결과 링크 복사됨!\n메모장이나 카톡에 저장하세요.')
+              }}
+              className="flex-1 py-3 text-sm rounded-xl"
+              style={{
+                background: '#0a0a0a',
+                color: '#fff',
+                fontFamily: 'var(--font-display)',
+                border: 'none',
+              }}
+            >
+              📋 결과 링크 저장
+            </button>
+            <button
+              onClick={() => router.push(`/result/${token}`)}
+              className="px-4 py-3 text-sm rounded-xl"
+              style={{
+                background: '#fff',
+                color: '#0a0a0a',
+                fontFamily: 'var(--font-display)',
+                border: '1.5px solid #0a0a0a',
+              }}
+            >
+              보기 →
+            </button>
+          </div>
+        </div>
+
+        {/* 응답 카운터 */}
+        <div
+          className="p-5 mb-6 rounded-2xl flex items-center justify-between"
+          style={{
+            background: count >= 3 ? '#FFEE00' : '#fff',
+            border: '1.5px solid ' + (count >= 3 ? '#0a0a0a' : '#e5e5e5'),
+            boxShadow: count >= 3 ? '0 3px 0 #0a0a0a' : '0 2px 12px rgba(0,0,0,0.04)',
+          }}
+        >
+          <div>
+            <div className="text-xs mb-1" style={{ color: '#666' }}>
+              {count >= 3 ? '✓ 결과 공개됐어요!' : '응답 대기 중'}
+            </div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 14 }}>
+              {count >= 3 ? '잠시 후 결과로 이동' : '3명 이상 답변 필요'}
+            </div>
+          </div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 32 }}>
+            {count}/3
+          </div>
+        </div>
+
+        {/* 공유 안내 */}
+        <h1
+          className="leading-tight mb-3 text-center"
+          style={{ fontFamily: 'var(--font-display)', fontSize: 32 }}
+        >
+          친구에게<br />
+          <span className="inline-block px-2 rounded-lg mt-1" style={{ background: '#FFEE00' }}>
+            평가받기
+          </span>
+        </h1>
+
+        <p className="text-sm text-center mb-6" style={{ color: '#666' }}>
+          친구가 답하면 점수가 집계됩니다
+        </p>
+
+        {/* 공유 버튼 */}
+        <button
+          onClick={handleShare}
+          className="w-full py-4 text-base rounded-2xl mb-3 transition-all"
+          style={{
+            background: '#0a0a0a',
+            color: '#fff',
+            fontFamily: 'var(--font-display)',
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 4px 0 #FFEE00',
+          }}
+        >
+          💛 카톡/메시지로 공유
+        </button>
+
+        <button
+          onClick={handleCopy}
+          className="w-full py-3 text-sm rounded-2xl mb-6"
+          style={{
+            background: copied ? '#FFEE00' : '#fff',
+            color: '#0a0a0a',
+            border: '1.5px solid #e5e5e5',
+            fontFamily: 'var(--font-mono)',
+          }}
+        >
+          {copied ? '✓ 복사됐어요!' : '🔗 평가 링크만 복사'}
+        </button>
+
+        {/* 링크 미리보기 */}
+        <div
+          className="p-3 text-xs break-all rounded-xl"
+          style={{
+            border: '1px dashed #ccc',
+            fontFamily: 'var(--font-mono)',
+            background: '#fff',
+            color: '#888',
+          }}
+        >
+          {shareUrl}
         </div>
       </div>
-
-      {/* 메인 공유 버튼 */}
-      <button
-        onClick={handleShare}
-        className="w-full py-5 text-lg mb-3 flex items-center justify-center gap-2"
-        style={{
-          background: HIGHLIGHT,
-          color: INK,
-          fontFamily: "var(--font-display)",
-          border: `2px solid ${INK}`,
-          cursor: 'pointer',
-        }}
-      >
-        💛 카톡/메시지로 공유
-      </button>
-
-      {/* 링크 복사 (보조) */}
-      <button
-        onClick={handleCopy}
-        className="w-full py-4 text-base mb-8"
-        style={{
-          background: copied ? '#f5f5f5' : '#fff',
-          color: INK,
-          fontFamily: "var(--font-mono)",
-          border: `1px solid ${INK}`,
-          cursor: 'pointer',
-        }}
-      >
-        {copied ? '✓ 복사됐어요!' : '🔗 링크 복사하기'}
-      </button>
-
-      {/* 링크 미리보기 */}
-      <div
-        className="px-4 py-3 mb-12 text-xs break-all"
-        style={{
-          border: `1px dashed ${GRAY}`,
-          fontFamily: "var(--font-mono)",
-          background: '#fafafa',
-          color: GRAY,
-        }}
-      >
-        {shareUrl}
-      </div>
-
-      <button
-        onClick={() => router.push(`/result/${token}`)}
-        className="w-full py-4 text-base"
-        style={{
-          background: 'transparent',
-          color: GRAY,
-          fontFamily: "var(--font-mono)",
-          border: `1px dashed ${GRAY}`,
-          cursor: 'pointer',
-        }}
-      >
-        결과 페이지 바로가기 →
-      </button>
     </main>
   )
 }

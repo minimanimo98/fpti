@@ -9,10 +9,14 @@ export default function Home() {
   const [error, setError] = useState('')
   const [stats, setStats] = useState({ users: 0, responses: 0 })
   const [face, setFace] = useState(0)
+  const [myToken, setMyToken] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     fetch('/api/stats').then(r => r.json()).then(setStats).catch(() => {})
+    // localStorage에서 본인 토큰 불러오기
+    const saved = localStorage.getItem('fpti_my_token')
+    if (saved) setMyToken(saved)
   }, [])
 
   const handleStart = async () => {
@@ -38,34 +42,28 @@ export default function Home() {
 
   const cycleFace = () => setFace((f) => (f + 1) % 5)
 
-  // 5가지 표정
   const faces = [
-    // 0: PEEK (한쪽 눈 흘끔)
     <g key="peek">
       <path d="M 45 60 Q 53 56 61 60" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
       <circle cx="92" cy="60" r="6" fill="#0a0a0a" />
       <circle cx="94" cy="58" r="2" fill="#fff" />
       <path d="M 60 85 Q 70 92 82 85" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
     </g>,
-    // 1: SMILE (헤헤)
     <g key="smile">
       <path d="M 42 58 Q 50 50 58 58" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
       <path d="M 82 58 Q 90 50 98 58" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
       <path d="M 55 82 Q 70 95 85 82" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
     </g>,
-    // 2: SHOCK (놀람)
     <g key="shock">
       <circle cx="50" cy="58" r="5" fill="#0a0a0a" />
       <circle cx="90" cy="58" r="5" fill="#0a0a0a" />
       <ellipse cx="70" cy="88" rx="8" ry="10" fill="#0a0a0a" />
     </g>,
-    // 3: SMIRK (능글)
     <g key="smirk">
       <path d="M 45 60 L 60 60" stroke="#0a0a0a" strokeWidth="3.5" strokeLinecap="round" />
       <path d="M 80 60 L 95 60" stroke="#0a0a0a" strokeWidth="3.5" strokeLinecap="round" />
       <path d="M 58 88 Q 75 82 85 90" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
     </g>,
-    // 4: SLEEPY (졸림)
     <g key="sleepy">
       <path d="M 45 62 Q 53 66 61 62" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
       <path d="M 82 62 Q 90 66 98 62" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
@@ -75,6 +73,52 @@ export default function Home() {
 
   return (
     <main className="min-h-screen" style={{ background: '#FAFAFA', color: '#0a0a0a' }}>
+      {/* 본인 결과 이어보기 (저장된 토큰 있을 때만) */}
+      {myToken && (
+        <div
+          className="px-4 py-3 mx-auto max-w-[480px] mt-4 mb-2 mx-6 rounded-xl flex items-center justify-between"
+          style={{
+            background: '#FFFBE5',
+            border: '1.5px solid #FFEE00',
+          }}
+        >
+          <div>
+            <div className="text-xs" style={{ color: '#666' }}>이어서 보기</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 14 }}>내 결과 페이지</div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => router.push(`/result/${myToken}`)}
+              className="px-3 py-2 text-xs rounded-lg"
+              style={{
+                background: '#0a0a0a',
+                color: '#fff',
+                fontFamily: 'var(--font-display)',
+                border: 'none',
+              }}
+            >
+              결과 →
+            </button>
+            <button
+              onClick={() => {
+                if (confirm('저장된 결과를 잊을까요?')) {
+                  localStorage.removeItem('fpti_my_token')
+                  setMyToken(null)
+                }
+              }}
+              className="px-2 py-2 text-xs rounded-lg"
+              style={{
+                background: '#fff',
+                color: '#999',
+                border: '1px solid #e5e5e5',
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="px-6 py-5 max-w-[480px] mx-auto flex justify-center">
         <div className="flex items-center gap-2.5">
@@ -88,7 +132,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 클릭하면 표정 바뀌는 마스코트 */}
       <div className="flex justify-center pt-6 pb-2">
         <button
           onClick={cycleFace}
@@ -116,7 +159,6 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Hero */}
       <section className="px-6 pt-2 pb-12 max-w-[480px] mx-auto text-center">
         <h1
           className="leading-[1.1] mb-5 tracking-tight"
@@ -180,7 +222,6 @@ export default function Home() {
         )}
       </section>
 
-      {/* 짧은 설명 */}
       <section className="px-6 pb-16 max-w-[480px] mx-auto text-center">
         <p className="text-sm leading-relaxed" style={{ color: '#666' }}>
           MBTI는 <strong style={{ color: '#0a0a0a' }}>내가 보는 나</strong>.<br />
@@ -190,7 +231,6 @@ export default function Home() {
         </p>
       </section>
 
-      {/* Footer */}
       <footer className="px-6 py-8 text-center">
         <div className="text-xs" style={{ color: '#aaa', lineHeight: 1.8 }}>
           © 2026 FPTI
