@@ -10,11 +10,6 @@ export default function Home() {
   const [stats, setStats] = useState({ users: 0, responses: 0 })
   const router = useRouter()
 
-  const INK = "#0a0a0a"
-  const PAPER = "#ffffff"
-  const HIGHLIGHT = "#FFEE00"
-  const GRAY = "#888888"
-
   useEffect(() => {
     fetch('/api/stats').then(r => r.json()).then(setStats).catch(() => {})
   }, [])
@@ -26,207 +21,295 @@ export default function Home() {
     }
     setLoading(true)
     setError('')
-
     const res = await fetch('/api/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nickname }),
     })
-
     const data = await res.json()
-
     if (data.error) {
       setError(data.error)
       setLoading(false)
       return
     }
-
     router.push(`/share/${data.token}`)
   }
 
   return (
-    <main>
-      <div
-        className="flex justify-between px-6 py-5 text-[11px] uppercase tracking-wider"
-        style={{ fontFamily: "var(--font-mono)", borderBottom: `2px solid ${INK}` }}
-      >
-        <div className="font-bold">FPTI.KR</div>
-        <div style={{ color: GRAY }}>VOL.01 · 2026</div>
-      </div>
+    <main className="min-h-screen" style={{ background: '#FAFAFA', color: '#0a0a0a' }}>
+      {/* Header */}
+      <header className="px-6 py-5 max-w-[600px] mx-auto flex justify-between items-center">
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{ background: '#FFEE00', boxShadow: '0 2px 0 #0a0a0a' }}
+          >
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 18 }}>F</span>
+          </div>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: 20 }}>FPTI</span>
+        </div>
+        <span className="text-xs" style={{ color: '#888' }}>한국어</span>
+      </header>
 
-      <section className="px-6 pt-10 pb-16">
+      {/* Hero */}
+      <section className="px-6 pt-10 pb-14 max-w-[600px] mx-auto text-center">
         <div
-          className="text-xs mb-8 pl-2.5 leading-snug"
-          style={{ fontFamily: "var(--font-mono)", borderLeft: `3px solid ${HIGHLIGHT}` }}
+          className="inline-block px-4 py-1.5 mb-7 text-xs rounded-full"
+          style={{ background: 'rgba(255,238,0,0.4)', border: '1px solid rgba(0,0,0,0.08)' }}
         >
-          FRIEND PERSONALITY TYPE INDICATOR<br />
-          NO.001 · SEOUL
+          12개 유형 · 28문항 · 2분 소요
         </div>
 
         <h1
-          className="leading-none tracking-tight mb-7"
-          style={{ fontFamily: "var(--font-display)", fontSize: "clamp(40px, 11vw, 88px)" }}
+          className="leading-[1.05] mb-6 tracking-tight"
+          style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(40px, 10vw, 64px)' }}
         >
-          친구들한테<br />
-          물어봤습니다.<br />
+          MBTI는 내가 보는 나.<br />
           <span
-            className="px-2.5 inline-block"
-            style={{ background: HIGHLIGHT, transform: "rotate(-1.5deg)" }}
+            className="inline-block px-3 py-0.5 rounded-2xl mt-2"
+            style={{ background: '#FFEE00', boxShadow: '0 3px 0 #0a0a0a' }}
           >
-            당신 인성
+            FPTI
           </span>
-          <br />
-          몇 점인지.
+          는<br />친구가 보는 나.
         </h1>
 
-        <p className="text-base leading-relaxed mb-9 max-w-[480px] font-medium" style={{ color: "#333" }}>
-          MBTI는 당신이 보는 당신.<br />
-          FPTI는 친구가 보는 당신.<br />
-          친구 3명의 답으로 당신의 진짜 인성이 드러납니다.
+        <p className="text-base mb-10 px-2" style={{ color: '#555', lineHeight: 1.7 }}>
+          본인이 답하는 테스트는 그만.<br />
+          친구 3명이 답하면 진짜 인성이 드러납니다.
         </p>
 
-        <div className="mb-3 max-w-[400px]">
+        {/* Input Card */}
+        <div
+          className="rounded-2xl p-5 mb-3 mx-auto max-w-[420px]"
+          style={{
+            background: '#fff',
+            border: '1px solid rgba(0,0,0,0.08)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+          }}
+        >
           <input
             type="text"
-            placeholder="닉네임 입력 (예: 김지훈)"
+            placeholder="닉네임 (예: 회사 김지훈)"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleStart()}
             maxLength={20}
-            className="w-full px-5 py-4 text-base outline-none"
+            className="w-full px-4 py-3.5 text-base outline-none rounded-xl mb-3"
             style={{
-              border: `2px solid ${INK}`,
-              fontFamily: "var(--font-body)",
-              background: PAPER,
-              color: INK,
+              background: '#FAFAFA',
+              border: '1px solid #eaeaea',
+              fontFamily: 'var(--font-body)',
+              textAlign: 'center',
             }}
           />
           {error && (
-            <p className="text-sm mt-2" style={{ color: '#e00' }}>{error}</p>
+            <p className="text-sm mb-3" style={{ color: '#e00' }}>{error}</p>
           )}
-        </div>
-
-        <div className="flex items-center gap-4 flex-wrap">
           <button
             onClick={handleStart}
             disabled={loading}
-            className="px-8 py-[18px] text-lg inline-flex items-center gap-2.5"
+            className="w-full py-4 text-lg rounded-xl transition-all"
             style={{
-              background: loading ? GRAY : INK,
-              color: PAPER,
-              fontFamily: "var(--font-display)",
-              border: "none",
-              cursor: loading ? "not-allowed" : "pointer",
+              background: loading ? '#888' : '#0a0a0a',
+              color: '#fff',
+              fontFamily: 'var(--font-display)',
+              border: 'none',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              boxShadow: loading ? 'none' : '0 4px 0 #FFEE00',
             }}
           >
             {loading ? '생성 중...' : '평가받기 시작 →'}
           </button>
-          <span
-            className="text-[11px] tracking-wider"
-            style={{ color: GRAY, fontFamily: "var(--font-mono)" }}
-          >
-            2분 · 28문항 · 오락 전용
-          </span>
         </div>
+
+        <p className="text-xs mt-4" style={{ color: '#999' }}>
+          오락 전용 · 심리학적 진단이 아닙니다
+        </p>
       </section>
 
-      <div
-        className="leading-[0.85] tracking-[-0.04em] py-6 overflow-hidden text-center"
-        style={{
-          fontFamily: "var(--font-archivo)",
-          fontSize: "clamp(120px, 38vw, 320px)",
-          color: INK,
-          borderTop: `2px solid ${INK}`,
-          borderBottom: `2px solid ${INK}`,
-        }}
-      >
-        FPTI
-      </div>
-
-      {/* 실시간 통계 */}
-      <section className="px-6 py-9" style={{ borderBottom: `2px solid ${INK}` }}>
+      {/* Live Stats Card */}
+      <section className="px-6 pb-8 max-w-[600px] mx-auto">
         <div
-          className="text-[11px] uppercase tracking-wider mb-6"
-          style={{ color: GRAY, fontFamily: "var(--font-mono)" }}
+          className="rounded-2xl p-6"
+          style={{
+            background: '#fff',
+            border: '1px solid rgba(0,0,0,0.08)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+          }}
         >
-          — Live Stats
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <div
-              className="leading-none mb-1.5"
-              style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 9vw, 56px)" }}
-            >
-              {stats.users.toLocaleString()}
-            </div>
-            <div className="text-xs" style={{ color: GRAY }}>명이 평가받았어요</div>
+          <div className="text-xs mb-4" style={{ color: '#888' }}>
+            🔴 실시간
           </div>
-          <div>
-            <div
-              className="leading-none mb-1.5"
-              style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 9vw, 56px)" }}
-            >
-              {stats.responses.toLocaleString()}
-            </div>
-            <div className="text-xs" style={{ color: GRAY }}>건의 솔직한 답변</div>
-          </div>
-        </div>
-      </section>
-
-      <section className="px-6 py-9" style={{ borderBottom: `2px solid ${INK}` }}>
-        <div
-          className="text-[11px] uppercase tracking-wider mb-6"
-          style={{ color: GRAY, fontFamily: "var(--font-mono)" }}
-        >
-          — By the Numbers
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { num: "12", desc: "성격 유형" },
-            { num: "28", desc: "평가 문항" },
-            { num: "2분", desc: "완료 시간" },
-          ].map((s, i) => (
-            <div key={i}>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <div
                 className="leading-none mb-1.5"
-                style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 9vw, 56px)" }}
+                style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 7vw, 40px)' }}
               >
-                {s.num}
+                {stats.users.toLocaleString()}
               </div>
-              <div className="text-xs" style={{ color: GRAY }}>{s.desc}</div>
+              <div className="text-xs" style={{ color: '#666' }}>명이 평가받았어요</div>
+            </div>
+            <div>
+              <div
+                className="leading-none mb-1.5"
+                style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 7vw, 40px)' }}
+              >
+                {stats.responses.toLocaleString()}
+              </div>
+              <div className="text-xs" style={{ color: '#666' }}>건의 솔직한 답변</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* What is FPTI */}
+      <section className="px-6 pb-8 max-w-[600px] mx-auto">
+        <div
+          className="rounded-2xl p-6"
+          style={{
+            background: '#fff',
+            border: '1px solid rgba(0,0,0,0.08)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+          }}
+        >
+          <h2
+            className="mb-3"
+            style={{ fontFamily: 'var(--font-display)', fontSize: 24 }}
+          >
+            FPTI가 뭔가요?
+          </h2>
+          <p className="text-sm leading-relaxed" style={{ color: '#444' }}>
+            <strong>F</strong>riend <strong>P</strong>ersonality <strong>T</strong>ype <strong>I</strong>ndicator.
+            친구들이 답하는 인성 테스트입니다. 자기를 객관적으로 보는 사람이 얼마나 될까요. FPTI는 그 허점에서 출발합니다.
+          </p>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="px-6 pb-8 max-w-[600px] mx-auto">
+        <div
+          className="rounded-2xl p-6"
+          style={{
+            background: '#fff',
+            border: '1px solid rgba(0,0,0,0.08)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+          }}
+        >
+          <h2
+            className="mb-5"
+            style={{ fontFamily: 'var(--font-display)', fontSize: 24 }}
+          >
+            어떻게 작동하나요?
+          </h2>
+          {[
+            { num: '1', title: '링크 만들기', desc: '닉네임 입력. 30초.' },
+            { num: '2', title: '친구에게 전송', desc: '카톡, DM, 어디든.' },
+            { num: '3', title: '결과 공개', desc: '3명 응답하면 잠금 해제.' },
+          ].map((step, i, arr) => (
+            <div
+              key={i}
+              className="flex items-center gap-4"
+              style={{
+                paddingTop: i === 0 ? 0 : 16,
+                paddingBottom: i === arr.length - 1 ? 0 : 16,
+                borderBottom: i === arr.length - 1 ? 'none' : '1px solid #f0f0f0',
+              }}
+            >
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: '#FFEE00', fontFamily: 'var(--font-display)', fontSize: 18 }}
+              >
+                {step.num}
+              </div>
+              <div>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 17 }}>{step.title}</div>
+                <div className="text-sm" style={{ color: '#666' }}>{step.desc}</div>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="px-6" style={{ background: INK, color: PAPER, paddingTop: "60px", paddingBottom: "28px" }}>
-        <h2
-          className="leading-tight mb-7"
-          style={{ fontFamily: "var(--font-display)", fontSize: "clamp(28px, 7vw, 42px)", color: PAPER }}
-        >
-          친구들이 뭐라고<br />답할지, 안 궁금해요?
-        </h2>
-        <button
-          onClick={handleStart}
-          className="px-8 py-[18px] text-lg mb-9"
+      {/* Type Preview */}
+      <section className="px-6 pb-8 max-w-[600px] mx-auto">
+        <div
+          className="rounded-2xl p-6"
           style={{
-            background: HIGHLIGHT,
-            color: INK,
-            fontFamily: "var(--font-display)",
-            border: "none",
-            cursor: "pointer",
+            background: '#fff',
+            border: '1px solid rgba(0,0,0,0.08)',
+            boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
           }}
         >
-          FPTI 시작하기 →
-        </button>
-        <div
-          className="text-[10px] tracking-wider uppercase pt-5 leading-loose"
-          style={{ fontFamily: "var(--font-mono)", color: "#888", borderTop: "1px solid #333" }}
+          <h2
+            className="mb-4"
+            style={{ fontFamily: 'var(--font-display)', fontSize: 24 }}
+          >
+            12가지 유형
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {[
+              '성인군자', '걸어다니는 힐링', '다정한 호구', '상식선 인간',
+              '무난무취형', '은근한 빌런', '뒷담화 챔피언', '기분파 폭군',
+              '감정 흡혈귀', '허당 귀요미', '???', '???'
+            ].map((type, i) => (
+              <span
+                key={i}
+                className="px-3 py-1.5 text-xs rounded-full"
+                style={{
+                  background: type === '???' ? '#0a0a0a' : '#f5f5f5',
+                  color: type === '???' ? '#FFEE00' : '#333',
+                  border: type === '???' ? 'none' : '1px solid #eaeaea',
+                }}
+              >
+                {type}
+              </span>
+            ))}
+          </div>
+          <p className="text-xs mt-4" style={{ color: '#888' }}>
+            마지막 두 개는 <strong style={{ color: '#0a0a0a' }}>숨은 유형</strong>입니다. 대부분 평생 받지 못합니다.
+          </p>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="px-6 pt-4 pb-12 max-w-[600px] mx-auto text-center">
+        <h2
+          className="mb-6 leading-tight"
+          style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(26px, 6vw, 36px)' }}
         >
+          친구들이 뭐라고 답할지,<br />
+          <span
+            className="inline-block px-2 rounded-xl mt-1"
+            style={{ background: '#FFEE00' }}
+          >
+            안 궁금해요?
+          </span>
+        </h2>
+        <button
+          onClick={() => document.querySelector('input')?.focus()}
+          className="px-10 py-4 text-lg rounded-xl transition-all"
+          style={{
+            background: '#0a0a0a',
+            color: '#fff',
+            fontFamily: 'var(--font-display)',
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 4px 0 #FFEE00',
+          }}
+        >
+          시작하기 →
+        </button>
+      </section>
+
+      {/* Footer */}
+      <footer className="px-6 py-8 text-center" style={{ borderTop: '1px solid #eaeaea' }}>
+        <div className="text-xs" style={{ color: '#999', lineHeight: 1.8 }}>
           © 2026 FPTI · 오락 전용<br />
           심리학적 진단이 아닙니다
         </div>
-      </section>
+      </footer>
     </main>
   )
 }
