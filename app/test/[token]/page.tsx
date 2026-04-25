@@ -49,8 +49,22 @@ export default function TestPage() {
   const [submitting, setSubmitting] = useState(false)
   const [current, setCurrent] = useState(0)
   const [shuffleSeeds, setShuffleSeeds] = useState<number[]>([])
+  const [alreadyVoted, setAlreadyVoted] = useState(false)
+  const [checking, setChecking] = useState(true)
 
-  // 첫 진입 시 28개 문항 각각의 셔플 시드 생성
+  // 중복 답변 체크 (페이지 진입 즉시)
+  useEffect(() => {
+    if (typeof token !== 'string') return
+    
+    const votedKey = `fpti_voted_${token}`
+    const hasVoted = localStorage.getItem(votedKey)
+    
+    if (hasVoted) {
+      setAlreadyVoted(true)
+    }
+    setChecking(false)
+  }, [token])
+
   useEffect(() => {
     setShuffleSeeds(QUESTIONS.map(() => Math.random()))
   }, [])
@@ -58,11 +72,9 @@ export default function TestPage() {
   const progress = Math.round(((current + 1) / QUESTIONS.length) * 100)
   const q = QUESTIONS[current]
 
-  // 현재 문항의 답변 순서 셔플 (시드 기반 - 같은 문항은 항상 같은 순서)
   const shuffledChoices = (() => {
     const seed = shuffleSeeds[current] ?? 0
     const arr = [...BASE_CHOICES]
-    // 시드 기반 결정적 셔플
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor((seed * (i + 1) * 13) % (i + 1))
       ;[arr[i], arr[j]] = [arr[j], arr[i]]
@@ -90,6 +102,8 @@ export default function TestPage() {
       body: JSON.stringify({ token, answers }),
     })
     if (res.ok) {
+      // 답변 완료 시 localStorage에 기록
+      localStorage.setItem(`fpti_voted_${token}`, new Date().toISOString())
       router.push(`/test/${token}/done`)
     } else {
       alert('오류가 발생했습니다. 다시 시도해주세요.')
@@ -100,6 +114,77 @@ export default function TestPage() {
   const isLast = current === QUESTIONS.length - 1
   const allAnswered = Object.keys(answers).length === QUESTIONS.length
 
+  // 체크 중
+  if (checking) {
+    return (
+      <main style={{ minHeight: '100vh', background: '#F5E6D8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: '#9B8268', fontSize: 13 }}>잠시만요...</p>
+      </main>
+    )
+  }
+
+  // 이미 답변한 사용자
+  if (alreadyVoted) {
+    return (
+      <main style={{ minHeight: '100vh', background: '#F5E6D8', color: '#2C1810', paddingLeft: 16, paddingRight: 16 }}>
+        <div style={{
+          maxWidth: 448, marginLeft: 'auto', marginRight: 'auto',
+          boxSizing: 'border-box',
+          minHeight: '100vh',
+          display: 'flex', flexDirection: 'column', justifyContent: 'center',
+          paddingTop: 32, paddingBottom: 32,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: 8,
+                background: '#2C1810', color: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'var(--font-display)', fontSize: 14,
+              }}>F</div>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>FPTI</span>
+            </div>
+          </div>
+
+          <div style={{
+            borderRadius: 20, padding: 28,
+            textAlign: 'center', marginBottom: 16,
+            background: '#fff', border: '2px solid #2C1810',
+            boxShadow: '0 5px 0 #C97D5A',
+            boxSizing: 'border-box', width: '100%',
+          }}>
+            <div style={{ fontSize: 56, marginBottom: 16 }}>🤔</div>
+            <h1 style={{
+              lineHeight: 1.3, marginBottom: 12,
+              fontFamily: 'var(--font-display)', fontSize: 26, color: '#2C1810',
+            }}>
+              이미 답변하셨어요
+            </h1>
+            <p style={{ fontSize: 13, lineHeight: 1.6, color: '#5A4030' }}>
+              한 친구당 한 번만 평가할 수 있어요.<br />
+              결과는 친구한테만 공개됩니다.
+            </p>
+          </div>
+
+          <button onClick={() => router.push('/')} style={{
+            width: '100%', padding: 16, fontSize: 15, borderRadius: 16,
+            background: '#2C1810', color: '#fff',
+            fontFamily: 'var(--font-display)', border: 'none',
+            cursor: 'pointer', boxShadow: '0 4px 0 #C97D5A',
+            boxSizing: 'border-box',
+          }}>
+            나도 평가받기 →
+          </button>
+
+          <p style={{ fontSize: 11, color: '#9B8268', textAlign: 'center', marginTop: 16, fontFamily: 'var(--font-mono)' }}>
+            본인 결과는 fpti.kr 첫화면에서 확인하세요
+          </p>
+        </div>
+      </main>
+    )
+  }
+
+  // 정상 답변 화면
   return (
     <main style={{ minHeight: '100vh', background: '#F5E6D8', color: '#2C1810' }}>
       <div style={{ height: 5, background: '#E5D4C0' }}>
