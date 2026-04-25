@@ -7,7 +7,8 @@ export default function DonePage() {
   const { token } = useParams()
   const router = useRouter()
   const [nickname, setNickname] = useState('친구')
-  const [notified, setNotified] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     fetch(`/api/get-result?token=${token}`)
@@ -18,30 +19,66 @@ export default function DonePage() {
       .catch(() => {})
   }, [token])
 
-  // 의뢰자한테 "답변 완료" 알리기
-  const handleNotify = async () => {
-    const resultUrl = `https://fpti.kr/result/${token}`
-    const text = `${nickname}야! 너 인성테스트 답변 완료했어 ✅\n\n결과 확인해봐 👉 ${resultUrl}`
+  const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  const isIOS = typeof window !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent)
+  const isKakaoInApp = typeof window !== 'undefined' && /KAKAOTALK/i.test(navigator.userAgent)
 
-    if (navigator.share) {
+  const resultUrl = `https://fpti.kr/result/${token}`
+  const shareText = `${nickname}야! 너 인성테스트 답변 완료했어 ✅\n\n결과 확인해봐 👉 ${resultUrl}`
+
+  // 메인 알림 버튼
+  const handleNotify = async () => {
+    // 카카오 인앱이면 외부 브라우저 안내
+    if (isKakaoInApp) {
+      alert('카카오톡 안에서는 공유가 안 돼요.\n오른쪽 위 메뉴 → "다른 브라우저로 열기"를 눌러주세요.')
+      return
+    }
+
+    // 모바일 + Web Share API 가능하면 시스템 공유창
+    if (isMobile && navigator.share) {
       try {
         await navigator.share({
           title: 'FPTI - 답변 완료',
-          text: text,
+          text: shareText,
           url: resultUrl,
         })
-        setNotified(true)
+        return
       } catch (err) {
-        if ((err as Error).name !== 'AbortError') {
-          // 공유 취소가 아니면 클립보드 복사 fallback
-          navigator.clipboard.writeText(text)
-          setNotified(true)
-        }
+        if ((err as Error).name === 'AbortError') return
       }
-    } else {
-      navigator.clipboard.writeText(text)
-      setNotified(true)
     }
+
+    // 안 되면 자체 모달
+    setShowShareModal(true)
+  }
+
+  // 카톡 직접 열기
+  const openKakaoTalk = () => {
+    navigator.clipboard.writeText(shareText)
+    
+    if (isIOS) {
+      window.location.href = 'kakaotalk://'
+    } else {
+      window.location.href = 'intent://launch#Intent;scheme=kakaolink;package=com.kakao.talk;end'
+    }
+    
+    setTimeout(() => {
+      alert('메시지가 복사됐어요!\n카톡에서 친구한테 붙여넣기 하세요.')
+    }, 500)
+    
+    setShowShareModal(false)
+  }
+
+  const openSMS = () => {
+    window.location.href = `sms:?body=${encodeURIComponent(shareText)}`
+    setShowShareModal(false)
+  }
+
+  const copyMessage = () => {
+    navigator.clipboard.writeText(shareText)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+    setShowShareModal(false)
   }
 
   return (
@@ -53,7 +90,6 @@ export default function DonePage() {
         paddingTop: 32, paddingBottom: 32,
       }}>
 
-        {/* 로고 */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{
@@ -66,7 +102,6 @@ export default function DonePage() {
           </div>
         </div>
 
-        {/* 완료 카드 */}
         <div style={{
           borderRadius: 20, padding: 28,
           textAlign: 'center', marginBottom: 16,
@@ -115,7 +150,20 @@ export default function DonePage() {
           </p>
         </div>
 
-        {/* 의뢰자 알리기 (메인 액션) */}
+        {/* 카카오 인앱 안내 */}
+        {isKakaoInApp && (
+          <div style={{
+            borderRadius: 12, padding: 12, marginBottom: 12,
+            background: '#FFF1E6', border: '1.5px solid #C97D5A',
+            boxSizing: 'border-box', width: '100%',
+          }}>
+            <p style={{ fontSize: 11, color: '#5A4030', lineHeight: 1.5, textAlign: 'center' }}>
+              💡 카톡 안에서는 공유가 제한됩니다.<br />
+              우상단 메뉴 → "다른 브라우저로 열기"를 눌러주세요.
+            </p>
+          </div>
+        )}
+
         <div style={{
           borderRadius: 16, padding: 16, marginBottom: 12,
           background: '#FFF8EE', border: '2px solid #C97D5A',
@@ -136,16 +184,14 @@ export default function DonePage() {
 
           <button onClick={handleNotify} style={{
             width: '100%', padding: 14, fontSize: 14, borderRadius: 12,
-            background: notified ? '#FFD96B' : '#2C1810',
-            color: notified ? '#2C1810' : '#fff',
+            background: '#2C1810', color: '#fff',
             fontFamily: 'var(--font-display)', border: 'none',
             cursor: 'pointer', boxSizing: 'border-box',
           }}>
-            {notified ? '✓ 알림 보냄' : `💬 ${nickname}한테 카톡 알리기`}
+            💬 {nickname}한테 알리기
           </button>
         </div>
 
-        {/* 본인도 받기 */}
         <div style={{
           borderRadius: 16, padding: 16, marginBottom: 12,
           background: '#fff', border: '1.5px solid #E5D4C0',
@@ -175,6 +221,96 @@ export default function DonePage() {
           나도 평가받기 →
         </button>
       </div>
+
+      {/* 공유 모달 */}
+      {showShareModal && (
+        <div onClick={() => setShowShareModal(false)} style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.4)',
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          zIndex: 1000,
+        }}>
+          <div onClick={(e) => e.stopPropagation()} style={{
+            background: '#FFF8EE',
+            borderRadius: '24px 24px 0 0',
+            padding: 24, width: '100%', maxWidth: 480,
+            boxSizing: 'border-box',
+          }}>
+            <div style={{
+              width: 40, height: 4, background: '#E5D4C0',
+              borderRadius: 2, margin: '0 auto 20px',
+            }} />
+
+            <h3 style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 18, color: '#2C1810',
+              textAlign: 'center', marginBottom: 4,
+            }}>
+              어떻게 알릴까요?
+            </h3>
+            <p style={{ fontSize: 12, color: '#9B8268', textAlign: 'center', marginBottom: 20 }}>
+              {nickname}한테 답변 완료를 알려주세요
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {isMobile && (
+                <>
+                  <button onClick={openKakaoTalk} style={{
+                    width: '100%', padding: 16, fontSize: 14,
+                    borderRadius: 14,
+                    background: '#FEE500', color: '#2C1810',
+                    fontFamily: 'var(--font-display)',
+                    border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                    boxSizing: 'border-box',
+                  }}>
+                    <span style={{ fontSize: 18 }}>💬</span>
+                    카카오톡 열기
+                  </button>
+
+                  <button onClick={openSMS} style={{
+                    width: '100%', padding: 16, fontSize: 14,
+                    borderRadius: 14,
+                    background: '#fff', color: '#2C1810',
+                    fontFamily: 'var(--font-display)',
+                    border: '2px solid #E5D4C0', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                    boxSizing: 'border-box',
+                  }}>
+                    <span style={{ fontSize: 18 }}>📱</span>
+                    문자 메시지
+                  </button>
+                </>
+              )}
+
+              <button onClick={copyMessage} style={{
+                width: '100%', padding: 16, fontSize: 14,
+                borderRadius: 14,
+                background: copied ? '#FFD96B' : '#2C1810',
+                color: copied ? '#2C1810' : '#fff',
+                fontFamily: 'var(--font-display)',
+                border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                boxSizing: 'border-box',
+              }}>
+                <span style={{ fontSize: 18 }}>📋</span>
+                {copied ? '✓ 복사됨' : '메시지 복사하기'}
+              </button>
+
+              <button onClick={() => setShowShareModal(false)} style={{
+                width: '100%', padding: 12, fontSize: 13,
+                borderRadius: 14, marginTop: 8,
+                background: 'transparent', color: '#9B8268',
+                fontFamily: 'var(--font-mono)',
+                border: 'none', cursor: 'pointer',
+                boxSizing: 'border-box',
+              }}>
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
