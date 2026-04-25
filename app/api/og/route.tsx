@@ -35,15 +35,8 @@ function calc(answers: Record<number, number>[]) {
   return { score, typeName }
 }
 
-function svgDataUrl(expression: 'peek' | 'smirk' | 'sleepy'): string {
-  const eyes = expression === 'peek'
-    ? '<path d="M 45 60 Q 53 56 61 60" stroke="#0a0a0a" stroke-width="3.5" fill="none" stroke-linecap="round" /><circle cx="92" cy="60" r="6" fill="#0a0a0a" /><circle cx="94" cy="58" r="2" fill="#fff" /><path d="M 60 85 Q 70 92 82 85" stroke="#0a0a0a" stroke-width="3.5" fill="none" stroke-linecap="round" />'
-    : expression === 'smirk'
-    ? '<path d="M 45 60 L 60 60" stroke="#0a0a0a" stroke-width="3.5" stroke-linecap="round" /><path d="M 80 60 L 95 60" stroke="#0a0a0a" stroke-width="3.5" stroke-linecap="round" /><path d="M 58 88 Q 75 82 85 90" stroke="#0a0a0a" stroke-width="3.5" fill="none" stroke-linecap="round" />'
-    : '<path d="M 45 62 Q 53 66 61 62" stroke="#0a0a0a" stroke-width="3.5" fill="none" stroke-linecap="round" /><path d="M 82 62 Q 90 66 98 62" stroke="#0a0a0a" stroke-width="3.5" fill="none" stroke-linecap="round" /><ellipse cx="70" cy="88" rx="6" ry="3" fill="#0a0a0a" />'
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" width="280" height="280"><ellipse cx="72" cy="128" rx="50" ry="6" fill="rgba(0,0,0,0.08)" /><circle cx="70" cy="65" r="55" fill="#FFEE00" stroke="#0a0a0a" stroke-width="3.5" /><circle cx="42" cy="78" r="4" fill="#FF9999" opacity="0.5" /><circle cx="98" cy="78" r="4" fill="#FF9999" opacity="0.5" />${eyes}</svg>`
-
+function svgDataUrl(): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" width="280" height="280"><ellipse cx="72" cy="128" rx="50" ry="6" fill="rgba(0,0,0,0.08)" /><circle cx="70" cy="65" r="55" fill="#FFD96B" stroke="#2C1810" stroke-width="3.5" /><circle cx="42" cy="78" r="4" fill="#E89B7A" opacity="0.7" /><circle cx="98" cy="78" r="4" fill="#E89B7A" opacity="0.7" /><path d="M 45 60 Q 53 56 61 60" stroke="#2C1810" stroke-width="3.5" fill="none" stroke-linecap="round" /><circle cx="92" cy="60" r="6" fill="#2C1810" /><circle cx="94" cy="58" r="2" fill="#fff" /><path d="M 60 85 Q 70 92 82 85" stroke="#2C1810" stroke-width="3.5" fill="none" stroke-linecap="round" /></svg>`
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
 }
 
@@ -80,28 +73,24 @@ export async function GET(request: Request) {
     }
 
     const showEvaluate = mode === 'test'
-    const expression: 'peek' | 'smirk' | 'sleepy' =
-      showEvaluate ? 'peek' : isPending ? 'sleepy' : 'smirk'
-
-    const mascotUrl = svgDataUrl(expression)
+    const mascotUrl = svgDataUrl()
 
     return new ImageResponse(
       (
         <div style={{
           width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
-          background: '#FAFAFA', padding: '60px 70px',
+          background: '#F5E6D8', padding: '60px 70px',
         }}>
           {/* 로고 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 30 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 30 }}>
             <div style={{
               display: 'flex',
-              width: 56, height: 56, background: '#FFEE00',
+              width: 56, height: 56, background: '#2C1810',
               borderRadius: 14,
               alignItems: 'center', justifyContent: 'center',
-              fontSize: 30, fontWeight: 900, color: '#0a0a0a',
-              boxShadow: '0 4px 0 #0a0a0a',
+              fontSize: 28, fontWeight: 900, color: '#fff',
             }}>F</div>
-            <div style={{ display: 'flex', fontSize: 32, fontWeight: 900, color: '#0a0a0a' }}>FPTI</div>
+            <div style={{ display: 'flex', fontSize: 32, fontWeight: 900, color: '#2C1810' }}>FPTI</div>
           </div>
 
           {/* 본문 */}
@@ -109,36 +98,36 @@ export async function GET(request: Request) {
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
               {showEvaluate ? (
                 <>
-                  <div style={{ display: 'flex', fontSize: 36, color: '#666', marginBottom: 16 }}>
+                  <div style={{ display: 'flex', fontSize: 36, color: '#6B5544', marginBottom: 16 }}>
                     {nickname || '친구'}의
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', fontSize: 90, fontWeight: 900, color: '#0a0a0a', lineHeight: 1.1 }}>
-                    <div style={{ display: 'flex', background: '#FFEE00', padding: '0 20px', borderRadius: 14 }}>인성</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', fontSize: 90, fontWeight: 900, color: '#2C1810', lineHeight: 1.1 }}>
+                    <div style={{ display: 'flex', background: '#FFD96B', padding: '0 20px', borderRadius: 14 }}>인성</div>
                     <div style={{ display: 'flex', marginLeft: 20 }}>평가하기</div>
                   </div>
-                  <div style={{ display: 'flex', fontSize: 28, color: '#666', marginTop: 24 }}>
+                  <div style={{ display: 'flex', fontSize: 28, color: '#6B5544', marginTop: 24 }}>
                     28문항 · 2분 소요
                   </div>
                 </>
               ) : isPending ? (
                 <>
-                  <div style={{ display: 'flex', fontSize: 36, color: '#666', marginBottom: 16 }}>
+                  <div style={{ display: 'flex', fontSize: 36, color: '#6B5544', marginBottom: 16 }}>
                     {nickname}님의
                   </div>
-                  <div style={{ display: 'flex', fontSize: 80, fontWeight: 900, color: '#0a0a0a', lineHeight: 1.1 }}>
-                    <div style={{ display: 'flex', background: '#FFEE00', padding: '0 20px', borderRadius: 14 }}>결과 대기 중</div>
+                  <div style={{ display: 'flex', fontSize: 80, fontWeight: 900, color: '#2C1810', lineHeight: 1.1 }}>
+                    <div style={{ display: 'flex', background: '#FFD96B', padding: '0 20px', borderRadius: 14 }}>결과 대기 중</div>
                   </div>
                 </>
               ) : (
                 <>
-                  <div style={{ display: 'flex', fontSize: 36, color: '#666', marginBottom: 14 }}>
+                  <div style={{ display: 'flex', fontSize: 36, color: '#6B5544', marginBottom: 14 }}>
                     {nickname}님은
                   </div>
-                  <div style={{ display: 'flex', fontSize: 88, fontWeight: 900, color: '#0a0a0a', lineHeight: 1.1 }}>
-                    <div style={{ display: 'flex', background: '#FFEE00', padding: '0 20px', borderRadius: 14 }}>{typeName}</div>
+                  <div style={{ display: 'flex', fontSize: 88, fontWeight: 900, color: '#2C1810', lineHeight: 1.1 }}>
+                    <div style={{ display: 'flex', background: '#FFD96B', padding: '0 20px', borderRadius: 14 }}>{typeName}</div>
                   </div>
                   {score !== null && (
-                    <div style={{ display: 'flex', fontSize: 48, color: '#0a0a0a', marginTop: 28 }}>
+                    <div style={{ display: 'flex', fontSize: 48, color: '#2C1810', marginTop: 28 }}>
                       점수 {score}/100
                     </div>
                   )}
@@ -146,14 +135,14 @@ export async function GET(request: Request) {
               )}
             </div>
 
-            {/* 마스코트 (이미지로) */}
+            {/* 마스코트 */}
             <img src={mascotUrl} width="280" height="280" alt="" />
           </div>
 
           {/* 하단 */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 24, color: '#888', marginTop: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 24, color: '#9B8268', marginTop: 20 }}>
             <div style={{ display: 'flex' }}>친구가 답하는 인성 테스트</div>
-            <div style={{ display: 'flex', fontWeight: 900, color: '#0a0a0a' }}>fpti.kr</div>
+            <div style={{ display: 'flex', fontWeight: 900, color: '#2C1810' }}>fpti.kr</div>
           </div>
         </div>
       ),

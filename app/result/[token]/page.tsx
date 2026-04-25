@@ -94,9 +94,7 @@ export default function ResultPage() {
 
   useEffect(() => {
     const fetchResult = () => {
-      fetch(`/api/get-result?token=${token}`)
-        .then(r => r.json())
-        .then(d => { setData(d); setLoading(false) })
+      fetch(`/api/get-result?token=${token}`).then(r => r.json()).then(d => { setData(d); setLoading(false) })
     }
     fetchResult()
     const interval = setInterval(fetchResult, 10000)
@@ -144,43 +142,43 @@ export default function ResultPage() {
   }
 
   if (loading) return (
-    <main className="min-h-screen flex items-center justify-center" style={{ background: '#F5E6D8' }}>
+    <main style={{ minHeight: '100vh', background: '#F5E6D8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <p style={{ color: '#9B8268', fontSize: 13 }}>집계 중...</p>
     </main>
   )
 
-  // 빈 상태
-  if (data?.empty || !data?.typeName || !data?.score) return (
-    <main className="min-h-screen" style={{ background: '#F5E6D8' }}>
-      <div className="max-w-[480px] mx-auto px-6 py-12">
-        <header className="flex justify-between items-center mb-12">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: '#2C1810', color: '#fff', fontFamily: 'var(--font-display)', fontSize: 14 }}>
-              F
-            </div>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: '#2C1810' }}>FPTI</span>
+  if (data?.empty || !data?.typeName || data?.score === undefined) return (
+    <main style={{ minHeight: '100vh', background: '#F5E6D8', paddingLeft: 16, paddingRight: 16 }}>
+      <div style={{ maxWidth: 448, marginLeft: 'auto', marginRight: 'auto', boxSizing: 'border-box', paddingTop: 48, paddingBottom: 48 }}>
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 48 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: 8,
+              background: '#2C1810', color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'var(--font-display)', fontSize: 14,
+            }}>F</div>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>FPTI</span>
           </div>
-          <button onClick={() => router.push('/')} className="text-xs px-3 py-2 rounded-full"
-            style={{ color: '#6B5544', background: '#fff', border: '1.5px solid #E5D4C0' }}>
-            처음으로
-          </button>
+          <button onClick={() => router.push('/')} style={{
+            fontSize: 12, padding: '6px 12px', borderRadius: 999,
+            color: '#6B5544', background: '#fff', border: '1.5px solid #E5D4C0', cursor: 'pointer',
+          }}>처음으로</button>
         </header>
-
-        <div className="text-center py-12">
-          <div className="text-6xl mb-6">🫥</div>
-          <h1 className="leading-tight mb-4" style={{ fontFamily: 'var(--font-display)', fontSize: 28, color: '#2C1810' }}>
+        <div style={{ textAlign: 'center', paddingTop: 48, paddingBottom: 48 }}>
+          <div style={{ fontSize: 56, marginBottom: 24 }}>🫥</div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 26, color: '#2C1810', marginBottom: 16, lineHeight: 1.3 }}>
             아직 답변이 없어요
           </h1>
-          <p className="text-sm mb-10" style={{ color: '#6B5544' }}>
+          <p style={{ fontSize: 13, marginBottom: 36, color: '#6B5544' }}>
             친구가 답해야 결과가 나와요.
           </p>
-          <button onClick={handleShareMore}
-            className="w-full py-4 text-base rounded-2xl"
-            style={{
-              background: '#2C1810', color: '#fff', fontFamily: 'var(--font-display)',
-              border: 'none', boxShadow: '0 4px 0 #C97D5A', cursor: 'pointer',
-            }}>
+          <button onClick={handleShareMore} style={{
+            width: '100%', padding: 16, fontSize: 15, borderRadius: 16,
+            background: '#2C1810', color: '#fff',
+            fontFamily: 'var(--font-display)', border: 'none',
+            boxShadow: '0 4px 0 #C97D5A', cursor: 'pointer', boxSizing: 'border-box',
+          }}>
             친구에게 평가 부탁하기
           </button>
         </div>
@@ -191,32 +189,34 @@ export default function ResultPage() {
   const typeInfo = TYPE_INFO[data.typeName] || TYPE_INFO['무난무취형']
 
   return (
-    <main className="min-h-screen pb-12" style={{ background: '#F5E6D8', color: '#2C1810' }}>
-      <div className="max-w-[480px] mx-auto px-5">
+    <main style={{ minHeight: '100vh', background: '#F5E6D8', color: '#2C1810', paddingLeft: 16, paddingRight: 16, paddingBottom: 48 }}>
+      <div style={{ maxWidth: 448, marginLeft: 'auto', marginRight: 'auto', boxSizing: 'border-box' }}>
 
         {/* 헤더 */}
-        <header className="py-5 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: '#2C1810', color: '#fff', fontFamily: 'var(--font-display)', fontSize: 14 }}>
-              F
-            </div>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, color: '#2C1810' }}>FPTI</span>
+        <header style={{ paddingTop: 20, paddingBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: 8,
+              background: '#2C1810', color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'var(--font-display)', fontSize: 14,
+            }}>F</div>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>FPTI</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs" style={{ color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 11, color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
               {data.count}명 응답
             </span>
-            <button onClick={() => router.push('/')} className="text-xs px-3 py-1.5 rounded-full"
-              style={{ color: '#6B5544', background: '#fff', border: '1.5px solid #E5D4C0' }}>
-              처음으로
-            </button>
+            <button onClick={() => router.push('/')} style={{
+              fontSize: 11, padding: '6px 12px', borderRadius: 999,
+              color: '#6B5544', background: '#fff', border: '1.5px solid #E5D4C0', cursor: 'pointer',
+            }}>처음으로</button>
           </div>
         </header>
 
         {/* 정확도 라벨 */}
-        <div className="flex items-center gap-2 mb-5 px-1">
-          <span className="text-xs" style={{ color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, paddingLeft: 4, paddingRight: 4 }}>
+          <span style={{ fontSize: 11, color: '#9B8268', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
             {data.accuracyLabel || '결과'}
           </span>
           <div style={{ flex: 1, height: 4, background: '#E5D4C0', borderRadius: 2, overflow: 'hidden' }}>
@@ -227,39 +227,38 @@ export default function ResultPage() {
               transition: 'width 0.6s ease',
             }} />
           </div>
-          <span className="text-xs" style={{ color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
+          <span style={{ fontSize: 11, color: '#9B8268', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
             {data.accuracyPercent || 33}%
           </span>
         </div>
 
-        {/* === 메인 결과 카드 (이미지 저장 대상) === */}
+        {/* === 메인 결과 카드 === */}
         <div ref={cardRef} style={{ background: '#F5E6D8', padding: '4px 0' }}>
-          <div
-            className="relative"
-            style={{
-              background: '#FFF8EE',
-              borderRadius: 20,
-              padding: '24px 20px 28px',
-              border: '2.5px solid #2C1810',
-              boxShadow: '0 6px 0 #C97D5A',
-            }}
-          >
+          <div style={{
+            position: 'relative',
+            background: '#FFF8EE',
+            borderRadius: 20,
+            padding: '24px 20px 28px',
+            border: '2.5px solid #2C1810',
+            boxShadow: '0 6px 0 #C97D5A',
+            boxSizing: 'border-box',
+            width: '100%',
+          }}>
             {/* 모서리 점 */}
-            <div className="absolute" style={{ top: 10, left: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
-            <div className="absolute" style={{ top: 10, right: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
-            <div className="absolute" style={{ bottom: 10, left: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
-            <div className="absolute" style={{ bottom: 10, right: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
+            <div style={{ position: 'absolute', top: 10, left: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
+            <div style={{ position: 'absolute', top: 10, right: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
+            <div style={{ position: 'absolute', bottom: 10, left: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
+            <div style={{ position: 'absolute', bottom: 10, right: 10, width: 8, height: 8, background: '#C97D5A', borderRadius: '50%' }} />
 
-            {/* 카드 라벨 */}
-            <div className="text-center mb-3">
-              <div className="text-xs tracking-widest" style={{ color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 12 }}>
+              <div style={{ fontSize: 11, letterSpacing: 2, color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
                 — FPTI No.{(token as string).slice(0, 4).toUpperCase()} —
               </div>
             </div>
 
-            {/* 캐릭터 */}
-            <div className="relative flex items-center justify-center my-3" style={{ height: 180 }}>
-              <div className="absolute" style={{
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', height: 180, marginTop: 12, marginBottom: 12 }}>
+              <div style={{
+                position: 'absolute',
                 width: 160, height: 160,
                 background: '#FFD96B',
                 borderRadius: '50%',
@@ -270,9 +269,8 @@ export default function ResultPage() {
               </div>
             </div>
 
-            {/* 점수 */}
-            <div className="text-center mb-3">
-              <div className="text-xs mb-1" style={{ color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 12 }}>
+              <div style={{ fontSize: 11, marginBottom: 4, color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
                 인성 점수
               </div>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: 56, lineHeight: 1, color: '#2C1810' }}>
@@ -281,36 +279,39 @@ export default function ResultPage() {
               </div>
             </div>
 
-            {/* 유형명 */}
-            <div className="text-center mb-4">
-              <h1 className="leading-tight" style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 8vw, 36px)', color: '#2C1810' }}>
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <h1 style={{
+                lineHeight: 1.2,
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(26px, 7.5vw, 34px)',
+                color: '#2C1810',
+              }}>
                 {data.typeName}
               </h1>
             </div>
 
-            {/* 해시태그 */}
-            <div className="flex justify-center gap-1.5 mb-4 flex-wrap px-2">
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginBottom: 16, flexWrap: 'wrap', paddingLeft: 8, paddingRight: 8 }}>
               {typeInfo.tags.map((tag, i) => (
-                <span key={i} className="text-xs px-2.5 py-1 rounded-full"
-                  style={{
-                    background: '#FFF',
-                    color: '#6B5544',
-                    border: '1px solid #E5D4C0',
-                    fontFamily: 'var(--font-mono)',
-                  }}>
+                <span key={i} style={{
+                  fontSize: 11,
+                  padding: '4px 10px',
+                  borderRadius: 999,
+                  background: '#fff',
+                  color: '#6B5544',
+                  border: '1px solid #E5D4C0',
+                  fontFamily: 'var(--font-mono)',
+                }}>
                   #{tag}
                 </span>
               ))}
             </div>
 
-            {/* 한 줄 설명 */}
-            <p className="text-sm text-center leading-relaxed px-2" style={{ color: '#5A4030' }}>
+            <p style={{ fontSize: 13, textAlign: 'center', lineHeight: 1.6, paddingLeft: 8, paddingRight: 8, color: '#5A4030' }}>
               {typeInfo.desc}
             </p>
 
-            {/* 워터마크 */}
-            <div className="text-center mt-5 pt-3" style={{ borderTop: '1px dashed #E5D4C0' }}>
-              <div className="text-xs" style={{ color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
+            <div style={{ textAlign: 'center', marginTop: 20, paddingTop: 12, borderTop: '1px dashed #E5D4C0' }}>
+              <div style={{ fontSize: 11, color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
                 {data.nickname}'s FPTI · fpti.kr
               </div>
             </div>
@@ -319,18 +320,25 @@ export default function ResultPage() {
 
         {/* 친구들 동의 항목 */}
         {data.topItems && data.topItems.length > 0 && (
-          <div className="rounded-2xl p-5 mt-5"
-            style={{ background: '#fff', border: '2px solid #E5D4C0' }}>
-            <div className="flex items-center gap-2 mb-4">
+          <div style={{
+            borderRadius: 16,
+            padding: 18,
+            marginTop: 20,
+            background: '#fff',
+            border: '1.5px solid #E5D4C0',
+            boxSizing: 'border-box',
+            width: '100%',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#C97D5A' }} />
-              <strong style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: '#2C1810' }}>
+              <strong style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: '#2C1810' }}>
                 친구들이 동의한 항목
               </strong>
             </div>
             {data.topItems.map((item: any, i: number) => (
-              <div key={i} className="flex items-start gap-3 mb-2.5 last:mb-0">
-                <div className="flex-shrink-0 mt-1" style={{ color: '#C97D5A', fontSize: 11 }}>●</div>
-                <p className="text-sm leading-relaxed" style={{ color: '#2C1810' }}>{QUESTIONS[item.id]}</p>
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
+                <div style={{ flexShrink: 0, marginTop: 4, color: '#C97D5A', fontSize: 10 }}>●</div>
+                <p style={{ fontSize: 13, lineHeight: 1.6, color: '#2C1810' }}>{QUESTIONS[item.id]}</p>
               </div>
             ))}
           </div>
@@ -338,18 +346,25 @@ export default function ResultPage() {
 
         {/* 동의 못한 항목 */}
         {data.bottomItems && data.bottomItems.length > 0 && (
-          <div className="rounded-2xl p-5 mt-3"
-            style={{ background: '#fff', border: '2px solid #E5D4C0' }}>
-            <div className="flex items-center gap-2 mb-4">
+          <div style={{
+            borderRadius: 16,
+            padding: 18,
+            marginTop: 12,
+            background: '#fff',
+            border: '1.5px solid #E5D4C0',
+            boxSizing: 'border-box',
+            width: '100%',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#2C1810' }} />
-              <strong style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: '#2C1810' }}>
+              <strong style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: '#2C1810' }}>
                 친구들이 동의 못한 항목
               </strong>
             </div>
             {data.bottomItems.map((item: any, i: number) => (
-              <div key={i} className="flex items-start gap-3 mb-2.5 last:mb-0">
-                <div className="flex-shrink-0 mt-1" style={{ color: '#2C1810', fontSize: 11 }}>●</div>
-                <p className="text-sm leading-relaxed" style={{ color: '#2C1810' }}>{QUESTIONS[item.id]}</p>
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
+                <div style={{ flexShrink: 0, marginTop: 4, color: '#2C1810', fontSize: 10 }}>●</div>
+                <p style={{ fontSize: 13, lineHeight: 1.6, color: '#2C1810' }}>{QUESTIONS[item.id]}</p>
               </div>
             ))}
           </div>
@@ -357,15 +372,22 @@ export default function ResultPage() {
 
         {/* 더 정확한 결과 안내 */}
         {data.count < 5 && (
-          <div className="rounded-2xl p-4 mt-5"
-            style={{ background: '#fff', border: '2px solid #C97D5A' }}>
-            <div className="flex items-start gap-3">
-              <div style={{ fontSize: 20 }}>📊</div>
+          <div style={{
+            borderRadius: 16,
+            padding: 14,
+            marginTop: 20,
+            background: '#fff',
+            border: '2px solid #C97D5A',
+            boxSizing: 'border-box',
+            width: '100%',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <div style={{ fontSize: 18, flexShrink: 0 }}>📊</div>
               <div style={{ minWidth: 0 }}>
-                <strong style={{ fontFamily: 'var(--font-display)', fontSize: 13, color: '#2C1810' }}>
+                <strong style={{ fontFamily: 'var(--font-display)', fontSize: 12, color: '#2C1810' }}>
                   더 정확한 결과 받기
                 </strong>
-                <p className="text-xs mt-1" style={{ color: '#5A4030', lineHeight: 1.5 }}>
+                <p style={{ fontSize: 11, marginTop: 4, color: '#5A4030', lineHeight: 1.5 }}>
                   지금 <strong style={{ color: '#2C1810' }}>{data.count}명</strong>이 답했어요.{' '}
                   {data.count < 3 ? `${3 - data.count}명만 더 답하면 정확도가 올라가요.` : `${5 - data.count}명만 더 답하면 100%가 돼요.`}
                 </p>
@@ -375,24 +397,23 @@ export default function ResultPage() {
         )}
 
         {/* 액션 버튼 */}
-        <div className="mt-6 space-y-2.5">
-          <button onClick={handleShareMore}
-            className="w-full py-4 text-base rounded-2xl"
-            style={{
-              background: '#2C1810', color: '#fff', fontFamily: 'var(--font-display)',
-              border: 'none', cursor: 'pointer', boxShadow: '0 4px 0 #C97D5A', fontSize: 15,
-            }}>
+        <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <button onClick={handleShareMore} style={{
+            width: '100%', padding: 16, fontSize: 15, borderRadius: 16,
+            background: '#2C1810', color: '#fff',
+            fontFamily: 'var(--font-display)', border: 'none',
+            cursor: 'pointer', boxShadow: '0 4px 0 #C97D5A', boxSizing: 'border-box',
+          }}>
             친구에게 평가 더 받기
           </button>
 
-          <button onClick={handleSaveImage} disabled={saving}
-            className="w-full py-3.5 text-sm rounded-2xl"
-            style={{
-              background: '#fff', color: '#2C1810',
-              fontFamily: 'var(--font-display)',
-              border: '2px solid #2C1810',
-              cursor: saving ? 'wait' : 'pointer',
-            }}>
+          <button onClick={handleSaveImage} disabled={saving} style={{
+            width: '100%', padding: 14, fontSize: 13, borderRadius: 16,
+            background: '#fff', color: '#2C1810',
+            fontFamily: 'var(--font-display)',
+            border: '2px solid #2C1810',
+            cursor: saving ? 'wait' : 'pointer', boxSizing: 'border-box',
+          }}>
             {saving ? '저장 중...' : '📸 결과 이미지 저장'}
           </button>
 
@@ -400,23 +421,21 @@ export default function ResultPage() {
             navigator.clipboard.writeText(`https://fpti.kr/result/${token}`)
             setCopied(true)
             setTimeout(() => setCopied(false), 2000)
-          }} className="w-full py-3 text-sm rounded-2xl"
-            style={{
-              background: 'transparent', color: copied ? '#2C1810' : '#6B5544',
-              border: `1.5px solid ${copied ? '#2C1810' : '#E5D4C0'}`,
-              fontFamily: 'var(--font-mono)',
-              cursor: 'pointer',
-            }}>
+          }} style={{
+            width: '100%', padding: 12, fontSize: 12, borderRadius: 16,
+            background: 'transparent', color: copied ? '#2C1810' : '#6B5544',
+            border: `1.5px solid ${copied ? '#2C1810' : '#E5D4C0'}`,
+            fontFamily: 'var(--font-mono)', cursor: 'pointer', boxSizing: 'border-box',
+          }}>
             {copied ? '✓ 결과 링크 복사됨' : '🔗 결과 링크 복사'}
           </button>
 
-          <button onClick={() => router.push('/')} className="w-full py-3 text-sm rounded-2xl"
-            style={{
-              background: 'transparent', color: '#9B8268',
-              border: '1px solid #E5D4C0',
-              fontFamily: 'var(--font-mono)',
-              cursor: 'pointer',
-            }}>
+          <button onClick={() => router.push('/')} style={{
+            width: '100%', padding: 12, fontSize: 12, borderRadius: 16,
+            background: 'transparent', color: '#9B8268',
+            border: '1px solid #E5D4C0',
+            fontFamily: 'var(--font-mono)', cursor: 'pointer', boxSizing: 'border-box',
+          }}>
             나도 평가받기
           </button>
         </div>
