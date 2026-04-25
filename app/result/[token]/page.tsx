@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 
 const QUESTIONS: Record<number, string> = {
@@ -31,19 +31,112 @@ const QUESTIONS: Record<number, string> = {
   25:"손해 보는 일은 절대 하지 않는다",
 }
 
-const TYPE_INFO: Record<string, { desc: string; tags: string[]; expression: string }> = {
-  '성인군자':       { desc: '친구들이 진심으로 좋은 사람이라고 생각합니다. 다만 너무 무결하다는 게 함정. 완벽함은 거리감을 만듭니다.', tags: ['성인급', '무결점', '멸종위기'], expression: 'smile' },
-  '걸어다니는 힐링': { desc: '같이 있으면 마음이 놓입니다. 다만 그 다정함이 당신을 소진시킬 수 있어요.', tags: ['정신적안정제', '말없는위로', '소진주의'], expression: 'smile' },
-  '다정한 호구':     { desc: '기본적으로 착합니다. 부탁을 잘 못 거절합니다. 친구들이 그걸 알고 있어요. 일부는 이용 중일지도.', tags: ['No못함', '친절무한리필', '호구졸업반'], expression: 'sleepy' },
-  '상식선 인간':     { desc: '놀랍게도 이 점수가 제일 받기 힘듭니다. 요즘 상식선 지키는 사람이 드물어졌어요. 평균의 수호자.', tags: ['정상인', '기본기만렙', '평균수호자'], expression: 'peek' },
-  '무난무취형':      { desc: '나쁘지 않습니다. 좋지도 않습니다. 해를 끼치지 않지만 기억에도 남지 않아요. 관계에서 의외로 치명적.', tags: ['존재감논란', '특색없음', '무색무취'], expression: 'sleepy' },
-  '은근한 빌런':     { desc: '표면적으론 문제없는 사람. 그런데 친구들이 미세한 불편함을 느꼈어요. 뭔가 계산적이라는 감각.', tags: ['겉속다름', '계산적', '속내따로'], expression: 'smirk' },
-  '뒷담화 챔피언':   { desc: '친구들은 당신 앞에서 웃습니다. 뒤돌아서면 조금 긴장합니다. 남 얘기를 너무 재밌게 합니다.', tags: ['입방정', '가십연구원', '뒤에선검사'], expression: 'smirk' },
-  '기분파 폭군':     { desc: '기분 좋을 땐 당신만한 친구가 없습니다. 문제는 기분이 나쁠 때. 친구들은 표정을 살피며 하루를 시작해요.', tags: ['기분존중', '감정날씨', '눈치제공자'], expression: 'shock' },
-  '감정 흡혈귀':     { desc: '당신과 얘기하면 친구들은 피곤해합니다. 대화는 늘 당신 문제로 끝나요. 친구는 치료사가 아니에요.', tags: ['영혼고갈', '배터리방전', '일방통행'], expression: 'shock' },
-  '허당 귀요미':     { desc: '점수가 낮은데 왠지 용서됩니다. 왜냐하면 귀엽기 때문이에요. 다만 허당력은 나이와 반비례합니다.', tags: ['귀여움무기', '허당력만렙', '유효기간있음'], expression: 'smile' },
-  '관종 빌런':       { desc: '관심을 위해서라면 뭐든 합니다. 재밌는 사람이라는 평가와 피곤한 사람이라는 평가가 공존해요.', tags: ['관심없으면불안', '모임의태양', '조연싫음'], expression: 'shock' },
-  '순수악':         { desc: '친구들은 당신에 대해 일관되게 부정적인 평가를 내렸습니다. 관계를 다시 생각해볼 신호.', tags: ['극희귀', '관계점검', '적신호'], expression: 'smirk' },
+interface TypeDetail {
+  identity: string
+  strength: string
+  caution: string
+  relationship: string
+  tags: string[]
+  expression: string
+}
+
+const TYPE_INFO: Record<string, TypeDetail> = {
+  '성인군자': {
+    identity: '성인군자는 친구들 사이에서 진심으로 좋은 사람으로 통합니다. 거짓말을 잘 못하고, 화를 잘 안 내며, 누군가의 험담에도 잘 끼지 않아요. 친구들은 종종 당신을 보며 "저 사람은 어떻게 저렇게 살까"라고 생각합니다.',
+    strength: '한결같은 신뢰감. 당신 앞에서는 친구들이 위선을 떨 필요가 없습니다. 진심을 보여도 받아주는 사람이라는 걸 알기 때문이에요.',
+    caution: '가끔은 너무 무결해서 거리감이 생깁니다. 친구들은 당신한테 본인의 어두운 면을 털어놓기 망설여요. 완벽함이 때로는 벽이 됩니다.',
+    relationship: '친구들은 당신을 존경하고, 동시에 약간 어려워합니다. 친구로서 가까이 있고 싶지만, 본인의 흠을 의식하게 되거든요. 가끔은 당신이 약한 모습을 보여줘야 친구들도 마음을 엽니다.',
+    tags: ['성인급', '무결점', '멸종위기'],
+    expression: 'smile',
+  },
+  '걸어다니는 힐링': {
+    identity: '걸어다니는 힐링은 말수가 많지 않을 수 있습니다. 그런데 같이 있으면 이상하게 마음이 놓여요. 친구들은 힘들 때 자기도 모르게 당신을 찾아옵니다. 조언이 필요해서가 아니라, 그냥 옆에 있고 싶어서요.',
+    strength: '타인의 감정을 알아채는 능력이 뛰어납니다. 말하지 않아도 분위기를 읽고, 무리하지 않는 선에서 위로를 건네요. 친구들에게는 그게 정말 큰 힘이 됩니다.',
+    caution: '다정함이 무한 자원은 아닙니다. 친구들의 감정을 받아주다 보면 정작 본인은 비어가는데, 당신은 그걸 잘 표현 못 해요. 그래서 어느 순간 조용히 지쳐버립니다.',
+    relationship: '친구들은 당신을 정신적 안식처처럼 여깁니다. 그게 좋으면서도 무거울 때가 있어요. 받기만 하는 친구들 사이에서, 당신도 누군가에게 기댈 수 있는 관계를 찾아야 합니다.',
+    tags: ['정신적안정제', '말없는위로', '소진주의'],
+    expression: 'smile',
+  },
+  '다정한 호구': {
+    identity: '다정한 호구는 기본적으로 착한 사람입니다. 부탁을 잘 거절하지 못하고, 거절했더라도 결국엔 들어주게 돼요. 친구들은 이걸 알고 있습니다. 일부는 매우 잘 활용하고 있고요.',
+    strength: '일관된 친절. 한결같은 다정함. 당신 옆에 있으면 마음이 편해진다는 친구가 많아요. 누군가 힘들어할 때 가장 먼저 달려가는 사람이 바로 당신입니다.',
+    caution: '"괜찮아"를 너무 자주 말합니다. 사실은 안 괜찮을 때도요. 부탁이 쌓이고, 본인은 점점 소진되고, 어느 날 갑자기 폭발하거나 조용히 사라지는 패턴이 반복돼요.',
+    relationship: '친구들은 당신을 진심으로 좋아합니다. 그런데 일부는 당신이 거절 못 한다는 걸 편하게 이용해요. 거절은 관계를 망가뜨리는 게 아니라, 오히려 진짜 친구가 누구인지 보여주는 신호입니다.',
+    tags: ['No못함', '친절무한리필', '호구졸업반'],
+    expression: 'sleepy',
+  },
+  '상식선 인간': {
+    identity: '상식선 인간은 놀랍게도 가장 받기 힘든 유형입니다. 약속 시간 지키고, 빌린 돈 돌려주고, 상대방 말이 끝날 때까지 기다리는 것. 이 평범한 일들을 모두가 하지는 않아요. 당신은 그냥 합니다.',
+    strength: '예측 가능성. 친구들은 당신과 약속하면 "오겠지"라고 자연스럽게 믿어요. 이게 별거 아닌 것 같지만, 관계에서 가장 중요한 자산입니다.',
+    caution: '가끔은 당신의 평범한 기준이 누군가에게는 부담일 수 있어요. 본인은 당연한 건데, 못 지키는 사람한테는 압박이 되거든요. 너무 모범생 같은 거리감이 생기지 않게 가끔 빈틈도 보여주세요.',
+    relationship: '친구들은 당신을 신뢰합니다. 큰 문제가 생기면 당신부터 떠올려요. 다만 너무 정석적이라 가벼운 농담 자리에 자꾸 빠지게 될 수 있어요. 평균의 수호자도 가끔은 헛소리를 해야 합니다.',
+    tags: ['정상인', '기본기만렙', '평균수호자'],
+    expression: 'peek',
+  },
+  '무난무취형': {
+    identity: '무난무취형은 갈등을 만들지 않는 사람입니다. 강하게 주장하지도, 강하게 반대하지도 않아요. 친구들은 당신과 있으면 편하다고 느낍니다. 다만 "어떤 사람이야?"라고 물으면 친구들도 한참 고민해요.',
+    strength: '중립적인 위치. 친구들 사이에 갈등이 생겨도 당신은 어느 편에도 치우치지 않아요. 그래서 모든 그룹에 자연스럽게 어울릴 수 있습니다. 평화의 매개자 역할을 자주 맡게 돼요.',
+    caution: '존재감이 옅어서 기억에 잘 안 남습니다. 친구들 모임에서 당신이 빠져도 분위기가 크게 달라지지 않을 수 있어요. 무난함이 편안함이 아니라 무관심으로 흘러갈 수 있다는 게 함정입니다.',
+    relationship: '친구들은 당신을 좋아하지만, 깊게 알지는 못합니다. 본인이 마음을 먼저 열지 않으면 관계는 늘 표면에서만 돌아요. 가끔은 본인 의견을 강하게 말해도 괜찮습니다. 친구들은 당신의 진짜 모습을 더 알고 싶어해요.',
+    tags: ['존재감논란', '특색없음', '무색무취'],
+    expression: 'sleepy',
+  },
+  '은근한 빌런': {
+    identity: '은근한 빌런은 표면적으로는 별다른 문제가 없는 사람입니다. 그런데 친구들이 함께 있을 때 미세한 불편함을 느껴요. 직접적으로 뭐가 문제라고 말하기는 어려운데, 어딘가 계산적이라는 느낌이 들거든요.',
+    strength: '영리합니다. 상황을 빠르게 파악하고, 본인에게 유리한 방향을 잘 찾아요. 사회적인 감각이 좋아서 어느 그룹에서도 적응을 잘 합니다.',
+    caution: '친구들은 당신의 진심이 어디 있는지 가끔 헷갈려요. 친절한 말 뒤에 어떤 의도가 있나 의심하게 될 때가 있습니다. 본인은 그냥 효율적으로 행동한 것뿐인데, 받아들이는 사람은 차갑게 느낄 수 있어요.',
+    relationship: '친구들은 당신과 거리감을 두기 시작합니다. 가까이 다가오기보다는 적당한 선을 유지하려고 해요. 가끔은 손해 보는 행동, 계산 없는 다정함을 보여주는 게 관계를 깊게 만들어줍니다.',
+    tags: ['겉속다름', '계산적', '속내따로'],
+    expression: 'smirk',
+  },
+  '뒷담화 챔피언': {
+    identity: '뒷담화 챔피언은 이야기 능력이 뛰어난 사람입니다. 남의 일을 재미있게 풀어내는 재주가 있어요. 친구들은 당신과 있으면 시간 가는 줄 모릅니다. 다만 그 자리에 없는 친구의 얘기가 자주 등장한다는 게 함정이에요.',
+    strength: '관찰력과 화술. 사람 관계의 미묘한 부분을 잘 포착하고, 그걸 흥미롭게 풀어낼 수 있어요. 이 능력 자체는 정말 훌륭한 자질입니다.',
+    caution: '친구들은 당신과 있을 때 즐겁지만, 자리를 떠난 뒤에는 살짝 긴장하기도 합니다. "내 얘기도 다른 데서 저렇게 하지 않을까?" 하는 생각이 드는 거죠. 재미있는 화제를 찾는 거랑, 친구를 화제로 만드는 건 조금 달라요.',
+    relationship: '친구들은 당신과 즐거운 시간을 보내지만, 진짜 비밀은 잘 털어놓지 않게 돼요. 신뢰는 작은 비밀을 지키는 데서 시작됩니다. 화제 거리를 찾는 건 자제하면 친구들이 더 마음을 열어요.',
+    tags: ['입방정', '가십연구원', '뒤에선검사'],
+    expression: 'smirk',
+  },
+  '기분파 폭군': {
+    identity: '기분파 폭군은 감정 표현이 솔직한 사람입니다. 좋을 때는 누구보다 따뜻하고 재미있어요. 다만 기분이 안 좋을 때는 그 분위기가 주변 전체에 퍼집니다. 친구들은 당신의 표정을 살피며 하루를 시작하기도 해요.',
+    strength: '감정에 솔직함. 가식이 없고, 좋아하는 마음을 숨기지 않아요. 당신이 즐거울 때 함께 있으면 정말 즐거운 시간이 됩니다.',
+    caution: '본인의 기분이 주변에 너무 강하게 영향을 미칩니다. 친구들은 당신이 안 좋아 보이면 자기 일처럼 신경을 쓰게 돼요. 그게 매번 반복되면 친구들도 점점 지칩니다.',
+    relationship: '친구들은 당신을 좋아하지만, 가끔 눈치를 봐야 한다는 부담이 있어요. 기분 좋은 날만 만나고 싶어지는 친구가 생길 수도 있습니다. 본인의 기분과 친구를 대하는 태도를 조금 분리해보면 관계가 훨씬 편해져요.',
+    tags: ['기분존중', '감정날씨', '눈치제공자'],
+    expression: 'shock',
+  },
+  '감정 흡혈귀': {
+    identity: '감정 흡혈귀는 감정의 깊이가 큰 사람입니다. 본인 감정을 강하게 느끼고, 그걸 친구들과 나누고 싶어해요. 친구들은 당신을 진심으로 걱정합니다. 다만 대화가 늘 당신 얘기로 흘러간다는 걸 살짝 느끼고 있어요.',
+    strength: '자기 감정을 솔직하게 표현하는 용기. 많은 사람들이 못 하는 일이에요. 당신 덕분에 친구들도 자기 감정을 더 들여다보게 됩니다.',
+    caution: '친구들과 만나고 나면 친구들이 조금 지쳐 보일 수 있어요. 본인이 의도한 건 아니지만, 감정의 무게를 친구들이 받아주는 패턴이 반복되거든요. 친구는 위로를 주고받는 관계지, 일방적으로 받아주는 사람은 아닙니다.',
+    relationship: '친구들은 당신과 거리를 두려는 게 아니라, 잠시 숨을 고르는 거예요. 친구한테만 의지하지 말고, 전문가의 도움이나 다른 출구도 함께 찾아보세요. 감정의 무게는 분산될수록 가벼워집니다.',
+    tags: ['영혼고갈', '배터리방전', '일방통행'],
+    expression: 'shock',
+  },
+  '허당 귀요미': {
+    identity: '허당 귀요미는 점수와 무관하게 사랑받는 캐릭터입니다. 실수를 자주 하는데 그게 미운 게 아니라 귀엽게 느껴져요. 친구들은 당신을 보며 "쟤는 뭘 해도 용서가 된다"고 말합니다.',
+    strength: '친밀감 자석. 친구들이 가까이 다가오게 만드는 분위기를 가지고 있어요. 어색한 자리에서도 당신이 있으면 분위기가 풀립니다. 이건 정말 흔치 않은 재능이에요.',
+    caution: '허당력은 나이와 함께 점점 약해지는 자원입니다. 20대까지는 귀여움으로 통하지만, 점점 더 책임감이나 신뢰감을 보여줘야 하는 순간이 늘어요. 매력은 유지하되, 진지한 면도 함께 키워가면 좋아요.',
+    relationship: '친구들은 당신을 사랑합니다. 다만 중요한 일을 맡길 때는 살짝 망설일 수 있어요. 본인이 진지하게 임해야 할 때를 구분할 수 있다면, 사랑받으면서도 신뢰까지 얻을 수 있습니다.',
+    tags: ['귀여움무기', '허당력만렙', '유효기간있음'],
+    expression: 'smile',
+  },
+  '관종 빌런': {
+    identity: '관종 빌런은 분위기 메이커입니다. 모임의 중심에 있고 싶어하고, 그 자리에 가장 잘 어울리는 캐릭터예요. 친구들은 당신과 있으면 절대 지루하지 않다고 말합니다. 다만 가끔은 너무 본인 중심이라는 평가도 있어요.',
+    strength: '존재감과 에너지. 무리에 활기를 불어넣는 능력이 있고, 사람들이 자연스럽게 당신을 따라옵니다. 분위기를 만드는 건 아무나 할 수 있는 일이 아니에요.',
+    caution: '가끔은 다른 친구들의 자리도 비워둬야 합니다. 본인이 늘 주연인 자리에서, 다른 친구들은 점점 조연이 되는 게 부담스러울 수 있어요. 한 번씩 다른 친구가 빛날 수 있게 자리를 양보해주는 것도 매력입니다.',
+    relationship: '친구들은 당신을 좋아하지만, 가끔은 조용한 자리도 필요해요. 화려한 사람과 깊은 대화를 나누는 건 또 다른 영역이거든요. 조용히 친구의 이야기를 들어주는 시간도 만들어보세요.',
+    tags: ['관심없으면불안', '모임의태양', '조연싫음'],
+    expression: 'shock',
+  },
+  '순수악': {
+    identity: '순수악은 친구들이 일관되게 부정적인 평가를 한 매우 드문 케이스입니다. 이건 결과 그대로 받아들이기보다는, 한번쯤 멈춰서 돌아볼 신호로 보면 좋아요. 본인의 행동이 친구들에게 어떻게 닿는지 솔직하게 점검해볼 시점입니다.',
+    strength: '이런 결과를 받아도 끝까지 보고 있다는 것 자체가 자기성찰의 시작이에요. 자기를 객관적으로 보려는 용기는 쉽게 가질 수 있는 게 아닙니다.',
+    caution: '친구들이 어디서 불편함을 느꼈는지 천천히 돌아보면 좋아요. 한두 가지 행동 패턴이 반복되고 있을 가능성이 높습니다. 본인은 의도하지 않았더라도, 친구들에게는 누적된 인상이 남아있어요.',
+    relationship: '관계는 한 번에 좋아지지 않지만, 한 번에 망가지지도 않아요. 작은 변화부터 시작해보세요. 솔직한 사과, 진심 어린 관심, 일관된 행동. 이것만 꾸준히 해도 친구들의 평가는 천천히 바뀝니다.',
+    tags: ['극희귀', '관계점검', '적신호'],
+    expression: 'smirk',
+  },
 }
 
 function MascotSvg({ expression, size = 120 }: { expression: string; size?: number }) {
@@ -92,6 +185,26 @@ function downloadBlob(blob: Blob, filename: string) {
   link.click()
   document.body.removeChild(link)
   URL.revokeObjectURL(url)
+}
+
+function DescBox({ title, content, dotColor }: { title: string; content: string; dotColor: string }) {
+  return (
+    <div style={{
+      borderRadius: 16, padding: 18, marginTop: 12,
+      background: '#fff', border: '1.5px solid #E5D4C0',
+      boxSizing: 'border-box', width: '100%',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: dotColor }} />
+        <strong style={{ fontFamily: 'var(--font-display)', fontSize: 14, color: '#2C1810' }}>
+          {title}
+        </strong>
+      </div>
+      <p style={{ fontSize: 14, lineHeight: 1.7, color: '#2C1810', margin: 0 }}>
+        {content}
+      </p>
+    </div>
+  )
 }
 
 export default function ResultPage() {
@@ -162,7 +275,7 @@ export default function ResultPage() {
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
         downloadBlob(blob, filename)
-        alert('공유가 안 돼서 이미지를 저장했어요.\n갤러리에서 직접 올려주세요.')
+        alert('공유가 안 돼서 이미지를 저장했어요.')
       }
     }
     setGenerating(false)
@@ -306,7 +419,6 @@ export default function ResultPage() {
             background: '#fff', padding: 12, borderRadius: 12,
             border: '1.5px dashed #E5D4C0',
             fontSize: 11, color: '#6B5544', lineHeight: 1.6,
-            marginBottom: 8,
           }}>
             💡 한 명의 답변만으로 결과가 나오면<br />
             정확하지 않을 수 있어서 잠시 기다려요.
@@ -437,7 +549,7 @@ export default function ResultPage() {
 
           <div style={{
             display: 'flex', justifyContent: 'center', gap: 6,
-            marginBottom: 16, flexWrap: 'wrap',
+            marginBottom: 0, flexWrap: 'wrap',
             paddingLeft: 4, paddingRight: 4,
           }}>
             {typeInfo.tags.map((tag, i) => (
@@ -453,16 +565,17 @@ export default function ResultPage() {
             ))}
           </div>
 
-          <p style={{ fontSize: 12, textAlign: 'center', lineHeight: 1.6, paddingLeft: 8, paddingRight: 8, color: '#5A4030' }}>
-            {typeInfo.desc}
-          </p>
-
           <div style={{ textAlign: 'center', marginTop: 20, paddingTop: 12, borderTop: '1px dashed #E5D4C0' }}>
             <div style={{ fontSize: 11, color: '#9B8268', fontFamily: 'var(--font-mono)' }}>
               {data.nickname}'s FPTI
             </div>
           </div>
         </div>
+
+        <DescBox title="나는 이런 사람" content={typeInfo.identity} dotColor="#C97D5A" />
+        <DescBox title="강점" content={typeInfo.strength} dotColor="#FFD96B" />
+        <DescBox title="주의할 점" content={typeInfo.caution} dotColor="#9B8268" />
+        <DescBox title="관계에서" content={typeInfo.relationship} dotColor="#2C1810" />
 
         {data.topItems && data.topItems.length > 0 && (
           <div style={{
