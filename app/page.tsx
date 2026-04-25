@@ -1,8 +1,43 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+
 export default function Home() {
-  const INK = "#0a0a0a";
-  const PAPER = "#ffffff";
-  const HIGHLIGHT = "#FFEE00";
-  const GRAY = "#888888";
+  const [nickname, setNickname] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const router = useRouter()
+
+  const INK = "#0a0a0a"
+  const PAPER = "#ffffff"
+  const HIGHLIGHT = "#FFEE00"
+  const GRAY = "#888888"
+
+  const handleStart = async () => {
+    if (!nickname.trim()) {
+      setError('닉네임을 입력해주세요')
+      return
+    }
+    setLoading(true)
+    setError('')
+
+    const res = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nickname }),
+    })
+
+    const data = await res.json()
+
+    if (data.error) {
+      setError(data.error)
+      setLoading(false)
+      return
+    }
+
+    router.push(`/share/${data.token}`)
+  }
 
   return (
     <main>
@@ -47,18 +82,42 @@ export default function Home() {
           친구 3명의 답으로 당신의 진짜 인성이 드러납니다.
         </p>
 
-        <div className="flex items-center gap-4 mb-6 flex-wrap">
-          <button
-            className="px-8 py-[18px] text-lg inline-flex items-center gap-2.5 transition-colors"
+        {/* 닉네임 입력 */}
+        <div className="mb-3 max-w-[400px]">
+          <input
+            type="text"
+            placeholder="닉네임 입력 (예: 김지훈)"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleStart()}
+            maxLength={20}
+            className="w-full px-5 py-4 text-base outline-none"
             style={{
-              background: INK,
+              border: `2px solid ${INK}`,
+              fontFamily: "var(--font-body)",
+              background: PAPER,
+              color: INK,
+            }}
+          />
+          {error && (
+            <p className="text-sm mt-2" style={{ color: '#e00' }}>{error}</p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-4 flex-wrap">
+          <button
+            onClick={handleStart}
+            disabled={loading}
+            className="px-8 py-[18px] text-lg inline-flex items-center gap-2.5"
+            style={{
+              background: loading ? GRAY : INK,
               color: PAPER,
               fontFamily: "var(--font-display)",
               border: "none",
-              cursor: "pointer",
+              cursor: loading ? "not-allowed" : "pointer",
             }}
           >
-            평가받기 시작 →
+            {loading ? '생성 중...' : '평가받기 시작 →'}
           </button>
           <span
             className="text-[11px] tracking-wider"
@@ -83,7 +142,7 @@ export default function Home() {
         FPTI
       </div>
 
-      {/* 통계 섹션 */}
+      {/* 통계 */}
       <section className="px-6 py-9" style={{ borderBottom: `2px solid ${INK}` }}>
         <div
           className="text-[11px] uppercase tracking-wider mb-6"
@@ -104,72 +163,13 @@ export default function Home() {
               >
                 {s.num}
               </div>
-              <div className="text-xs" style={{ color: GRAY }}>
-                {s.desc}
-              </div>
+              <div className="text-xs" style={{ color: GRAY }}>{s.desc}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* 어떻게 작동? */}
-      <section className="px-6" style={{ paddingTop: "60px", paddingBottom: "60px" }}>
-        <div
-          className="text-[11px] uppercase tracking-wider mb-4"
-          style={{ color: GRAY, fontFamily: "var(--font-mono)" }}
-        >
-          — How It Works
-        </div>
-        <h2
-          className="leading-none mb-9"
-          style={{ fontFamily: "var(--font-display)", fontSize: "clamp(28px, 7vw, 48px)" }}
-        >
-          어떻게<br />작동하나요?
-        </h2>
-
-        {[
-          { num: "1", title: "링크 만들기", desc: "닉네임 입력. 30초 만에 내 전용 링크 생성." },
-          { num: "2", title: "친구에게 전송", desc: "카톡, DM, 어디든. 친구는 2분 안에 답변." },
-          { num: "3", title: "결과 공개", desc: "3명 응답하면 잠금 해제. 12개 유형 중 하나로 판정." },
-        ].map((step, i, arr) => (
-          <div
-            key={i}
-            className="py-5 grid gap-4 items-start"
-            style={{
-              gridTemplateColumns: "56px 1fr",
-              borderTop: "1px solid #ddd",
-              borderBottom: i === arr.length - 1 ? "1px solid #ddd" : "none",
-            }}
-          >
-            <div
-              className="leading-none flex items-center justify-center"
-              style={{
-                fontFamily: "var(--font-archivo)",
-                fontSize: "22px",
-                color: INK,
-                background: HIGHLIGHT,
-                width: "44px",
-                height: "44px",
-              }}
-            >
-              {step.num}
-            </div>
-            <div>
-              <h3
-                className="text-xl mb-1.5 leading-tight"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                {step.title}
-              </h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#444" }}>
-                {step.desc}
-              </p>
-            </div>
-          </div>
-        ))}
-      </section>
-
-      {/* 푸터 CTA */}
+      {/* 푸터 */}
       <section className="px-6" style={{ background: INK, color: PAPER, paddingTop: "60px", paddingBottom: "28px" }}>
         <h2
           className="leading-tight mb-7"
@@ -178,7 +178,8 @@ export default function Home() {
           친구들이 뭐라고<br />답할지, 안 궁금해요?
         </h2>
         <button
-          className="px-8 py-[18px] text-lg mb-9 transition-transform"
+          onClick={handleStart}
+          className="px-8 py-[18px] text-lg mb-9"
           style={{
             background: HIGHLIGHT,
             color: INK,
@@ -191,16 +192,12 @@ export default function Home() {
         </button>
         <div
           className="text-[10px] tracking-wider uppercase pt-5 leading-loose"
-          style={{
-            fontFamily: "var(--font-mono)",
-            color: "#888",
-            borderTop: "1px solid #333",
-          }}
+          style={{ fontFamily: "var(--font-mono)", color: "#888", borderTop: "1px solid #333" }}
         >
           © 2026 FPTI · 오락 전용<br />
           심리학적 진단이 아닙니다
         </div>
       </section>
     </main>
-  );
+  )
 }
