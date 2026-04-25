@@ -8,6 +8,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [stats, setStats] = useState({ users: 0, responses: 0 })
+  const [face, setFace] = useState(0)
   const router = useRouter()
 
   useEffect(() => {
@@ -35,6 +36,43 @@ export default function Home() {
     router.push(`/share/${data.token}`)
   }
 
+  const cycleFace = () => setFace((f) => (f + 1) % 5)
+
+  // 5가지 표정
+  const faces = [
+    // 0: PEEK (한쪽 눈 흘끔)
+    <g key="peek">
+      <path d="M 45 60 Q 53 56 61 60" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+      <circle cx="92" cy="60" r="6" fill="#0a0a0a" />
+      <circle cx="94" cy="58" r="2" fill="#fff" />
+      <path d="M 60 85 Q 70 92 82 85" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+    </g>,
+    // 1: SMILE (헤헤)
+    <g key="smile">
+      <path d="M 42 58 Q 50 50 58 58" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+      <path d="M 82 58 Q 90 50 98 58" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+      <path d="M 55 82 Q 70 95 85 82" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+    </g>,
+    // 2: SHOCK (놀람)
+    <g key="shock">
+      <circle cx="50" cy="58" r="5" fill="#0a0a0a" />
+      <circle cx="90" cy="58" r="5" fill="#0a0a0a" />
+      <ellipse cx="70" cy="88" rx="8" ry="10" fill="#0a0a0a" />
+    </g>,
+    // 3: SMIRK (능글)
+    <g key="smirk">
+      <path d="M 45 60 L 60 60" stroke="#0a0a0a" strokeWidth="3.5" strokeLinecap="round" />
+      <path d="M 80 60 L 95 60" stroke="#0a0a0a" strokeWidth="3.5" strokeLinecap="round" />
+      <path d="M 58 88 Q 75 82 85 90" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+    </g>,
+    // 4: SLEEPY (졸림)
+    <g key="sleepy">
+      <path d="M 45 62 Q 53 66 61 62" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+      <path d="M 82 62 Q 90 66 98 62" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+      <ellipse cx="70" cy="88" rx="6" ry="3" fill="#0a0a0a" />
+    </g>,
+  ]
+
   return (
     <main className="min-h-screen" style={{ background: '#FAFAFA', color: '#0a0a0a' }}>
       {/* Header */}
@@ -50,24 +88,32 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 마스코트 캐릭터 PEEK */}
+      {/* 클릭하면 표정 바뀌는 마스코트 */}
       <div className="flex justify-center pt-6 pb-2">
-        <svg width="140" height="140" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
-          {/* 그림자 */}
-          <ellipse cx="72" cy="128" rx="50" ry="6" fill="rgba(0,0,0,0.08)" />
-          {/* 얼굴 */}
-          <circle cx="70" cy="65" r="55" fill="#FFEE00" stroke="#0a0a0a" strokeWidth="3.5" />
-          {/* 왼쪽 눈 (감김) */}
-          <path d="M 45 60 Q 53 56 61 60" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-          {/* 오른쪽 눈 (뜸 - 옆을 봄) */}
-          <circle cx="92" cy="60" r="6" fill="#0a0a0a" />
-          <circle cx="94" cy="58" r="2" fill="#fff" />
-          {/* 입 (살짝 비웃는 듯) */}
-          <path d="M 60 85 Q 70 92 82 85" stroke="#0a0a0a" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-          {/* 볼 터치 */}
-          <circle cx="42" cy="78" r="4" fill="#FF9999" opacity="0.5" />
-          <circle cx="98" cy="78" r="4" fill="#FF9999" opacity="0.5" />
-        </svg>
+        <button
+          onClick={cycleFace}
+          aria-label="표정 바꾸기"
+          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+        >
+          <svg
+            width="140"
+            height="140"
+            viewBox="0 0 140 140"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ transition: 'transform 0.15s' }}
+            onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.92)')}
+            onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            onTouchStart={(e) => (e.currentTarget.style.transform = 'scale(0.92)')}
+            onTouchEnd={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+          >
+            <ellipse cx="72" cy="128" rx="50" ry="6" fill="rgba(0,0,0,0.08)" />
+            <circle cx="70" cy="65" r="55" fill="#FFEE00" stroke="#0a0a0a" strokeWidth="3.5" />
+            <circle cx="42" cy="78" r="4" fill="#FF9999" opacity="0.5" />
+            <circle cx="98" cy="78" r="4" fill="#FF9999" opacity="0.5" />
+            {faces[face]}
+          </svg>
+        </button>
       </div>
 
       {/* Hero */}
@@ -124,7 +170,7 @@ export default function Home() {
         </button>
 
         <p className="text-xs mt-5" style={{ color: '#999' }}>
-          2분 · 28문항 · 오락 전용
+          소요시간 2분 · 28문항
         </p>
 
         {stats.users > 0 && (
@@ -147,7 +193,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="px-6 py-8 text-center">
         <div className="text-xs" style={{ color: '#aaa', lineHeight: 1.8 }}>
-          © 2026 FPTI · 오락 전용
+          © 2026 FPTI
         </div>
       </footer>
     </main>
