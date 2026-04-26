@@ -227,9 +227,14 @@ export default function ResultPage() {
 
   const isMobile = typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
+  const isIOS = typeof window !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent)
+  const isKakao = typeof window !== 'undefined' && /KAKAOTALK/i.test(navigator.userAgent)
+
+  const imageUrl = '/api/result-image?token=' + token
+
   const fetchImageBlob = async (): Promise<Blob | null> => {
     try {
-      const res = await fetch('/api/result-image?token=' + token)
+      const res = await fetch(imageUrl)
       if (!res.ok) return null
       return await res.blob()
     } catch (e) {
@@ -239,6 +244,19 @@ export default function ResultPage() {
 
   const handleSaveImage = async () => {
     setGenerating(true)
+    
+    // iOS는 새 탭에서 이미지 열어서 사용자가 길게 눌러 저장
+    if (isIOS) {
+      window.open(imageUrl, '_blank')
+      setGenerating(false)
+      setShowShareModal(false)
+      setTimeout(() => {
+        alert('새 탭에 열린 이미지를\n길게 눌러서 \'사진에 저장\'을 눌러주세요 📸')
+      }, 500)
+      return
+    }
+    
+    // Android는 직접 다운로드
     const blob = await fetchImageBlob()
     if (!blob) {
       alert('이미지 생성에 실패했어요.')
@@ -274,8 +292,14 @@ export default function ResultPage() {
       await navigator.share(shareData)
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        downloadBlob(blob, filename)
-        alert('공유가 안 돼서 이미지를 저장했어요.')
+        // iOS는 새 탭, Android는 다운로드
+        if (isIOS) {
+          window.open(imageUrl, '_blank')
+          alert('새 탭에 열린 이미지를 길게 눌러 저장해주세요 📸')
+        } else {
+          downloadBlob(blob, filename)
+          alert('공유가 안 돼서 이미지를 저장했어요.')
+        }
       }
     }
     setGenerating(false)
@@ -284,6 +308,23 @@ export default function ResultPage() {
 
   const handleInstagramStory = async () => {
     setGenerating(true)
+    
+    // iOS: 새 탭에 이미지 열기 + 인스타 앱 호출
+    if (isIOS) {
+      window.open(imageUrl, '_blank')
+      navigator.clipboard.writeText('https://fpti.kr')
+      setGenerating(false)
+      setShowShareModal(false)
+      setTimeout(() => {
+        alert('1) 새 탭의 이미지를 길게 눌러 저장\n2) 인스타 앱에서 스토리에 올리기 📸')
+        setTimeout(() => {
+          window.location.href = 'instagram://story-camera'
+        }, 2000)
+      }, 500)
+      return
+    }
+    
+    // Android
     const blob = await fetchImageBlob()
     if (!blob) {
       alert('이미지 생성에 실패했어요.')
