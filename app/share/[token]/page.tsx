@@ -30,7 +30,16 @@ export default function SharePage() {
 
   const shareMessage = '나 ' + (user?.nickname || '내') + ' 인성 평가 좀 해줘 🥺\n친구가 답해주는 인성테스트야 (2분컷)\n\n👉 ' + testUrl
 
+  const trackEvent = (event: string) => {
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, event }),
+    }).catch(() => {})
+  }
+
   const handleKakaoShare = () => {
+    trackEvent('shared')
     if (navigator.share) {
       navigator.share({
         title: 'FPTI - 친구가 답하는 인성 테스트',

@@ -58,7 +58,27 @@ export default function TestPage() {
     const hasVoted = localStorage.getItem(votedKey)
     if (hasVoted) setAlreadyVoted(true)
     setChecking(false)
+    
+    // 평가 페이지 방문 추적
+    if (!hasVoted) {
+      fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, event: 'test_visited' }),
+      }).catch(() => {})
+    }
   }, [token])
+
+  useEffect(() => {
+    // 첫 답변 시작 추적 (1번 문항 답한 시점)
+    if (Object.keys(answers).length === 1 && typeof token === 'string') {
+      fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, event: 'test_started' }),
+      }).catch(() => {})
+    }
+  }, [Object.keys(answers).length === 1])
 
   useEffect(() => {
     setShuffleSeeds(QUESTIONS.map(() => Math.random()))
