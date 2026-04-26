@@ -287,7 +287,7 @@ export default function Home() {
           </button>
 
           <p style={{ fontSize: 12, marginTop: 20, color: '#9B8268' }}>
-            소요시간 2분 · 28문항
+            소요시간 2분 · 28문항 · 만 14세 이상
           </p>
 
           {stats.users > 0 && (
@@ -317,6 +317,14 @@ export default function Home() {
         </section>
 
         <footer style={{ padding: '32px 0', textAlign: 'center' }}>
+          <div style={{ fontSize: 11, color: '#9B8268', lineHeight: 1.8, marginBottom: 8 }}>
+            만 14세 이상 이용 가능
+          </div>
+          <div style={{ fontSize: 11, color: '#9B8268', lineHeight: 1.8, marginBottom: 8 }}>
+            <a href="/privacy" style={{ color: '#6B5544', textDecoration: 'underline' }}>
+              개인정보 처리방침
+            </a>
+          </div>
           <div style={{ fontSize: 11, color: '#9B8268', lineHeight: 1.8 }}>
             © 2026 FPTI
           </div>
